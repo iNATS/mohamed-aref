@@ -30,7 +30,7 @@ export async function login(formData: FormData) {
   if (error) {
     return redirect(`/login?message=${encodeURIComponent('Invalid email or password')}`);
   }
-
+  
   return redirect('/admin');
 }
 
