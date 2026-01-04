@@ -1,0 +1,21 @@
+{
+  "name": "Mohamed Aref Portfolio",
+  "short_name": "MA Portfolio",
+  "description": "Portfolio of Mohamed Aref, showcasing web development, mobile, and design projects.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F0F2F9",
+  "theme_color": "#3F51B5",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
