@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
     Carousel,
     CarouselContent,
@@ -19,6 +19,7 @@ import {
   } from "@/components/ui/carousel"
 import type { PortfolioItem } from '@/components/landing/Portfolio';
 import { Skeleton } from '@/components/ui/skeleton';
+import { createClient } from '@/lib/supabase/client';
 import { getPortfolioItemBySlug } from '@/lib/db';
 
 const ImageLightbox = ({
@@ -189,7 +190,8 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
 
   useEffect(() => {
     async function fetchProject() {
-      const foundProject = await getPortfolioItemBySlug(params.slug);
+      const supabase = createClient();
+      const foundProject = await getPortfolioItemBySlug(supabase, params.slug);
       if (foundProject) {
         setProject(foundProject as PortfolioItem);
       }

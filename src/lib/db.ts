@@ -1,5 +1,5 @@
 
-import { createServerClient } from './supabase/server';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PortfolioItem } from '@/components/landing/Portfolio';
 import type { Client } from '@/app/admin/clients/page';
 import type { Project } from '@/app/admin/projects/page';
@@ -8,8 +8,7 @@ import type { Task } from '@/app/admin/tasks/page';
 // The createServerClient can be used in Server Components, Server Actions, and Route Handlers.
 // It is not meant for Client Components.
 
-export async function getPortfolioItems(): Promise<PortfolioItem[]> {
-    const supabase = createServerClient();
+export async function getPortfolioItems(supabase: SupabaseClient): Promise<PortfolioItem[]> {
     const { data, error } = await supabase.from('portfolio_items').select('*');
     if (error) {
         console.error('Error fetching portfolio items:', error);
@@ -18,8 +17,7 @@ export async function getPortfolioItems(): Promise<PortfolioItem[]> {
     return data as PortfolioItem[];
 }
 
-export async function getPortfolioItemBySlug(slug: string): Promise<PortfolioItem | null> {
-    const supabase = createServerClient();
+export async function getPortfolioItemBySlug(supabase: SupabaseClient, slug: string): Promise<PortfolioItem | null> {
     const { data, error } = await supabase
         .from('portfolio_items')
         .select('*')
@@ -32,8 +30,7 @@ export async function getPortfolioItemBySlug(slug: string): Promise<PortfolioIte
     return data as PortfolioItem;
 }
 
-export async function getPortfolioCategories() {
-    const supabase = createServerClient();
+export async function getPortfolioCategories(supabase: SupabaseClient) {
     const { data, error } = await supabase.from('portfolio_categories').select('*');
     if (error) {
         console.error('Error fetching portfolio categories:', error);
@@ -42,8 +39,7 @@ export async function getPortfolioCategories() {
     return data;
 }
 
-export async function getPageContent(section: string) {
-    const supabase = createServerClient();
+export async function getPageContent(supabase: SupabaseClient, section: string) {
     const { data, error } = await supabase.from('page_content').select('content').eq('section', section).single();
     if (error) {
         console.error(`Error fetching page content for section ${section}:`, error);
@@ -52,8 +48,7 @@ export async function getPageContent(section: string) {
     return data?.content || null;
 }
 
-export async function getTestimonials() {
-    const supabase = createServerClient();
+export async function getTestimonials(supabase: SupabaseClient) {
     const { data, error } = await supabase.from('testimonials').select('*');
     if (error) {
         console.error('Error fetching testimonials:', error);
@@ -62,8 +57,7 @@ export async function getTestimonials() {
     return data;
 }
 
-export async function getClients(): Promise<Client[]> {
-    const supabase = createServerClient();
+export async function getClients(supabase: SupabaseClient): Promise<Client[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
@@ -75,8 +69,7 @@ export async function getClients(): Promise<Client[]> {
     return data as Client[];
 }
 
-export async function getProjects(): Promise<Project[]> {
-    const supabase = createServerClient();
+export async function getProjects(supabase: SupabaseClient): Promise<Project[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
     
@@ -88,8 +81,7 @@ export async function getProjects(): Promise<Project[]> {
     return data as Project[];
 }
 
-export async function getTasks(): Promise<Task[]> {
-    const supabase = createServerClient();
+export async function getTasks(supabase: SupabaseClient): Promise<Task[]> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
     
@@ -101,8 +93,7 @@ export async function getTasks(): Promise<Task[]> {
     return data as Task[];
 }
 
-export async function getDashboardData() {
-    const supabase = createServerClient();
+export async function getDashboardData(supabase: SupabaseClient) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
         return {
@@ -122,7 +113,7 @@ export async function getDashboardData() {
         clientsRes,
     ] = await Promise.all([
         supabase.from('projects').select('*, client:clients(name, avatar)', { count: 'exact' }).eq('user_id', user.id),
-        supabase.from('tasks').select('*', { count: 'exact' }).eq('user_id', user.id),
+        supabase.from('tasks').select('*, project:projects(title)', { count: 'exact' }).eq('user_id', user.id),
         supabase.from('clients').select('*, projects(*)', { count: 'exact' }).eq('user_id', user.id),
     ]);
 
@@ -139,8 +130,43 @@ export async function getDashboardData() {
         upcomingDeadlines: tasksRes.data
             ?.filter(t => t.due_date && new Date(t.due_date) > new Date())
             .sort((a, b) => new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime())
-            .slice(0, 3) || [],
+            .slice(0, 3)
+            .map(t => ({...t, projectTitle: t.project?.title })) || [],
         activeProjects: activeProjects.slice(0, 3),
         recentClients: clientsRes.data?.sort((a,b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0,3) || [],
     };
+}
+
+
+export async function getNotifications(supabase: SupabaseClient) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('Error fetching notifications:', error);
+        return [];
+    }
+    return data;
+}
+
+export async function markNotificationsAsRead(supabase: SupabaseClient) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+    
+    if (error) {
+        return { success: false, error: error.message };
+    }
+    return { success: true };
 }

@@ -47,13 +47,10 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format, differenceInCalendarDays, formatDistanceToNowStrict, isWithinInterval } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { getProjects, getClients, addProject, updateProject, deleteProject } from '@/lib/db';
 import { handleAddProject, handleUpdateProject, handleDeleteProject } from '@/lib/actions';
 import type { Client } from '../clients/page';
-
 
 export type Project = {
   id: number;
@@ -64,9 +61,24 @@ export type Project = {
   budget: number;
   start_date: Date;
   end_date: Date;
+  user_id: string;
 };
 
 export type ProjectStatus = 'planning' | 'in-progress' | 'completed';
+
+// MOCK DATA
+const initialClients: Client[] = [
+    { id: '1', name: 'Innovate Inc.', email: 'contact@innovate.com', avatar: 'https://i.pravatar.cc/100?u=innovate', status: 'active', company: 'Innovate Inc.', phone: '555-0101', address: '123 Tech Avenue, Silicon Valley', notes: 'Leading tech startup.'},
+    { id: '2', name: 'Creative Solutions', email: 'hello@creative.co', avatar: 'https://i.pravatar.cc/100?u=creative', status: 'active', company: 'Creative Solutions LLC', phone: '555-0102', address: '456 Design Drive, Arts District', notes: 'Design agency.'},
+    { id: '3', name: 'Global Goods', email: 'support@globalgoods.com', avatar: 'https://i.pravatar.cc/100?u=global', status: 'new', company: 'Global Goods', phone: '555-0103', address: '789 Market Street, Commerce City', notes: 'New client.'},
+];
+const initialProjects: Project[] = [
+    { id: 1, title: 'Website Redesign', description: 'Complete overhaul of the corporate website.', status: 'in-progress', client_id: '1', budget: 25000, start_date: new Date('2023-08-01'), end_date: new Date('2023-12-15'), user_id: '1' },
+    { id: 2, title: 'Mobile App Launch', description: 'Launch campaign for the new mobile application.', status: 'planning', client_id: '2', budget: 40000, start_date: new Date('2023-09-15'), end_date: new Date('2024-01-30'), user_id: '1' },
+    { id: 3, title: 'E-commerce Integration', description: 'Integrating a new payment gateway.', status: 'completed', client_id: '1', budget: 15000, start_date: new Date('2023-06-01'), end_date: new Date('2023-07-30'), user_id: '1' },
+];
+// END MOCK DATA
+
 
 const getStatusBadge = (status: ProjectStatus) => {
     switch (status) {
@@ -92,9 +104,17 @@ const ProjectCard = ({ project, onEdit, onDelete, onView, clients }: { project: 
     const startDate = new Date(project.start_date);
     const endDate = new Date(project.end_date);
 
-    const totalDays = differenceInCalendarDays(endDate, startDate);
-    const daysPassed = differenceInCalendarDays(new Date(), startDate);
+    const diff = (a: Date, b: Date) => Math.ceil((a.getTime() - b.getTime()) / (1000 * 60 * 60 * 24));
+    const totalDays = diff(endDate, startDate);
+    const daysPassed = diff(new Date(), startDate);
     const progress = totalDays > 0 ? Math.min(Math.max((daysPassed / totalDays) * 100, 0), 100) : (new Date() > endDate ? 100 : 0);
+
+    const format = (date: Date, fmt: string) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: fmt.includes('yyyy') ? 'numeric' : undefined });
+    const formatDistanceToNowStrict = (date: Date) => {
+        const days = diff(date, new Date());
+        if (days < 0) return `${Math.abs(days)} days ago`;
+        return `in ${days} days`;
+    }
 
     return (
         <div ref={setNodeRef} style={style} {...attributes}>
@@ -177,7 +197,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, clients }: { project?: Proje
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         const values = Object.fromEntries(formData.entries());
-        onSubmit({ ...values, startDate, endDate, budget: Number(values.budget) });
+        onSubmit({ ...values, start_date: startDate, end_date: endDate, budget: Number(values.budget) });
     };
     
     return (
@@ -212,7 +232,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, clients }: { project?: Proje
                         <PopoverTrigger asChild>
                         <Button variant={"outline"} className={cn("justify-start text-left font-normal bg-black/5 dark:bg-white/5 border-zinc-300 dark:border-white/10 hover:bg-black/10 dark:hover:bg-white/10", !startDate && "text-muted-foreground")}>
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {startDate ? format(startDate, "MMM d, yyyy") : <span>Start Date</span>}
+                            {startDate ? startDate.toLocaleDateString() : <span>Start Date</span>}
                         </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0 bg-background/80 backdrop-blur-xl border-zinc-200/50 dark:border-white/10 text-foreground dark:text-white" align="start">
@@ -223,7 +243,7 @@ const ProjectForm = ({ project, onSubmit, onCancel, clients }: { project?: Proje
                         <PopoverTrigger asChild>
                         <Button variant={"outline"} className={cn("justify-start text-left font-normal bg-black/5 dark:bg-white/5 border-zinc-300 dark:border-white/10 hover:bg-black/10 dark:hover:bg-white/10", !endDate && "text-muted-foreground")}>
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {endDate ? format(endDate, "MMM d, yyyy") : <span>End Date</span>}
+                            {endDate ? endDate.toLocaleDateString() : <span>End Date</span>}
                         </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0 bg-background/80 backdrop-blur-xl border-zinc-200/50 dark:border-white/10 text-foreground dark:text-white" align="start">
@@ -248,10 +268,13 @@ const ProjectViewDialog = ({ project, open, onOpenChange, clients }: { project: 
     const startDate = new Date(project.start_date);
     const endDate = new Date(project.end_date);
 
-    const totalDays = differenceInCalendarDays(endDate, startDate);
-    const daysPassed = differenceInCalendarDays(new Date(), startDate);
+    const diff = (a: Date, b: Date) => Math.ceil((a.getTime() - b.getTime()) / (1000 * 60 * 60 * 24));
+    const totalDays = diff(endDate, startDate);
+    const daysPassed = diff(new Date(), startDate);
     const progress = totalDays > 0 ? Math.min(Math.max((daysPassed / totalDays) * 100, 0), 100) : (new Date() > endDate ? 100 : 0);
     const timeRemaining = formatDistanceToNowStrict(endDate, { addSuffix: true });
+
+    const format = (date: Date, fmt: string) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: fmt.includes('yyyy') ? 'numeric' : undefined });
 
     return (
          <Dialog open={open} onOpenChange={onOpenChange}>
@@ -303,8 +326,8 @@ const ProjectViewDialog = ({ project, open, onOpenChange, clients }: { project: 
 }
 
 export default function ProjectsPage() {
-    const [projects, setProjects] = React.useState<Project[]>([]);
-    const [clients, setClients] = React.useState<Client[]>([]);
+    const [projects, setProjects] = React.useState<Project[]>(initialProjects);
+    const [clients, setClients] = React.useState<Client[]>(initialClients);
     const [activeProject, setActiveProject] = React.useState<Project | null>(null);
     const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
     const [editingProject, setEditingProject] = React.useState<Project | null>(null);
@@ -329,10 +352,9 @@ export default function ProjectsPage() {
     const columnTitles = { planning: 'Planning', 'in-progress': 'In Progress', completed: 'Completed' };
 
     const fetchProjects = React.useCallback(async () => {
-        const projectsData = await getProjects();
-        const clientsData = await getClients();
-        setProjects(projectsData as Project[]);
-        setClients(clientsData as Client[]);
+        // In a real app, you would fetch from the server
+        setProjects(initialProjects);
+        setClients(initialClients);
     }, []);
 
     React.useEffect(() => {
@@ -385,18 +407,18 @@ export default function ProjectsPage() {
         const isOverAColumn = over.data.current?.type === "Column";
 
         if (isActiveAProject && isOverAColumn) {
-            setProjects(currentProjects => {
+            setProjects(async (currentProjects) => {
                 const activeIndex = currentProjects.findIndex(p => p.id === activeId);
                 const currentStatus = currentProjects[activeIndex].status;
                 const newStatus = over.data.current?.status as ProjectStatus;
                 if (currentStatus === newStatus) return currentProjects;
 
                 const updatedProject = { ...currentProjects[activeIndex], status: newStatus };
+                
+                await handleUpdateProject(activeId as number, { status: newStatus });
+                
                 const newProjects = [...currentProjects];
                 newProjects[activeIndex] = updatedProject;
-                
-                handleUpdateProject(activeId as number, { status: newStatus });
-
                 return arrayMove(newProjects, activeIndex, activeIndex);
             });
         }
@@ -409,11 +431,9 @@ export default function ProjectsPage() {
                 
                 if (currentProjects[activeIndex].status !== currentProjects[overIndex].status) {
                     const newStatus = currentProjects[overIndex].status
-                    const updatedProject = {...currentProjects[activeIndex], status: newStatus };
                     handleUpdateProject(activeId as number, { status: newStatus });
-                    const newProjects = [...currentProjects];
-                    newProjects[activeIndex] = updatedProject;
-                    return arrayMove(newProjects, activeIndex, overIndex);
+                    currentProjects[activeIndex].status = newStatus;
+                    return arrayMove(currentProjects, activeIndex, overIndex);
                 }
 
                 return arrayMove(currentProjects, activeIndex, overIndex);
@@ -423,7 +443,8 @@ export default function ProjectsPage() {
 
     const handleDragEnd = React.useCallback(() => {
         setActiveProject(null);
-    }, []);
+        fetchProjects(); // Re-sync with the "database"
+    }, [fetchProjects]);
 
     const handleEdit = (project: Project) => setEditingProject(project);
     const closeEditDialog = () => setEditingProject(null);

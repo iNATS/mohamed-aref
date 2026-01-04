@@ -10,7 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getDashboardData } from '@/lib/db';
+// This page is now a client component, so we can't use server-only functions directly.
+// In a real app, you'd fetch this data via a client-side fetch to an API route, or pass it as props from a server component parent.
+// For this demo, we'll use placeholder static data.
 
 interface DashboardData {
     activeProjectsCount: number;
@@ -21,6 +23,29 @@ interface DashboardData {
     activeProjects: any[];
     recentClients: any[];
 }
+
+const getDashboardData = async (): Promise<DashboardData> => {
+    // MOCK DATA
+    return {
+        activeProjectsCount: 3,
+        pendingTasksCount: 8,
+        newClientsCount: 2,
+        overdueTasksCount: 1,
+        upcomingDeadlines: [
+            { id: 1, title: 'Finalize Logo Design', projectTitle: 'New Brand Identity', due_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() },
+            { id: 2, title: 'Develop Landing Page', projectTitle: 'Website Redesign', due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString() },
+        ],
+        activeProjects: [
+            { id: 1, title: 'Website Redesign', client: { name: 'Innovate Inc.', avatar: 'https://i.pravatar.cc/100?u=innovate' }, start_date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), end_date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString() },
+            { id: 2, title: 'Mobile App Launch', client: { name: 'Creative Solutions', avatar: 'https://i.pravatar.cc/100?u=creative' }, start_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), end_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString() },
+        ],
+        recentClients: [
+            { id: '3', name: 'Global Goods', company: 'Global Goods Inc.', avatar: 'https://i.pravatar.cc/100?u=global' },
+            { id: '2', name: 'Creative Solutions', company: 'Creative Solutions LLC', avatar: 'https://i.pravatar.cc/100?u=creative' },
+        ]
+    };
+};
+
 
 export default function AdminDashboard() {
   const [data, setData] = React.useState<DashboardData | null>(null);
@@ -57,6 +82,8 @@ export default function AdminDashboard() {
     const now = new Date();
     const diff = date.getTime() - now.getTime();
     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    if (days < 0) return `${Math.abs(days)} days ago`;
+    if (days === 0) return `today`;
     return `${days} days`;
   }
 

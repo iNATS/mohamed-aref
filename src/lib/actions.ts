@@ -1,9 +1,12 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { createServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import type { Project, ProjectStatus } from '@/app/admin/projects/page';
+import type { Project } from '@/app/admin/projects/page';
+import type { Client } from '@/app/admin/clients/page';
+import type { Task } from '@/app/admin/tasks/page';
 
 export async function handleContactForm(prevState: any, formData: FormData) {
     await new Promise(res => setTimeout(res, 1000));
@@ -36,26 +39,6 @@ export async function logout() {
 }
 
 
-// Generic project update function to be used by server actions
-async function updateProjectStatus(id: number, status: ProjectStatus) {
-    const supabase = createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { success: false, error: 'Unauthorized' };
-
-    const { error } = await supabase
-        .from('projects')
-        .update({ status })
-        .eq('id', id)
-        .eq('user_id', user.id);
-
-    if (error) {
-        return { success: false, error: error.message };
-    }
-    revalidatePath('/admin/projects');
-    return { success: true };
-}
-
-
 export async function handleAddProject(values: Omit<Project, 'id'>) {
     const supabase = createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -74,7 +57,7 @@ export async function handleAddProject(values: Omit<Project, 'id'>) {
     return { success: true };
 }
 
-export async function handleUpdateProject(id: number, values: Partial<Omit<Project, 'id'>>) {
+export async function handleUpdateProject(id: number, values: Partial<Omit<Project, 'id' | 'user_id'>>) {
     const supabase = createServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
@@ -90,6 +73,7 @@ export async function handleUpdateProject(id: number, values: Partial<Omit<Proje
     }
 
     revalidatePath('/admin/projects');
+    revalidatePath('/admin/dashboard');
     return { success: true };
 }
 
@@ -109,5 +93,88 @@ export async function handleDeleteProject(id: number) {
     }
 
     revalidatePath('/admin/projects');
+    revalidatePath('/admin/dashboard');
+    return { success: true };
+}
+
+export async function handleAddClient(values: Omit<Client, 'id' | 'user_id'>) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase.from('clients').insert([
+        { ...values, user_id: user.id }
+    ]);
+    if (error) { return { success: false, error: error.message }; }
+    revalidatePath('/admin/clients');
+    return { success: true };
+}
+
+export async function handleUpdateClient(id: string, values: Partial<Omit<Client, 'id' | 'user_id'>>) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase.from('clients')
+        .update(values)
+        .eq('id', id)
+        .eq('user_id', user.id);
+    if (error) { return { success: false, error: error.message }; }
+    revalidatePath('/admin/clients');
+    return { success: true };
+}
+
+export async function handleDeleteClient(id: string) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+    
+    const { error } = await supabase.from('clients')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+    if (error) { return { success: false, error: error.message }; }
+    revalidatePath('/admin/clients');
+    return { success: true };
+}
+
+export async function handleAddTask(values: Omit<Task, 'id' | 'user_id'>) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase.from('tasks').insert([
+        { ...values, user_id: user.id }
+    ]);
+    if (error) { return { success: false, error: error.message }; }
+    revalidatePath('/admin/tasks');
+    return { success: true };
+}
+
+export async function handleUpdateTask(id: number, values: Partial<Omit<Task, 'id' | 'user_id'>>) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+
+    const { error } = await supabase.from('tasks')
+        .update(values)
+        .eq('id', id)
+        .eq('user_id', user.id);
+    if (error) { return { success: false, error: error.message }; }
+    revalidatePath('/admin/tasks');
+    return { success: true };
+}
+
+export async function handleDeleteTask(id: number) {
+    const supabase = createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: 'Unauthorized' };
+    
+    const { error } = await supabase.from('tasks')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+    if (error) { return { success: false, error: error.message }; }
+    revalidatePath('/admin/tasks');
     return { success: true };
 }

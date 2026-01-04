@@ -10,9 +10,12 @@ import { Contact } from '@/components/landing/Contact';
 import { LandingPageMotion } from '@/components/landing/LandingPageMotion';
 import type { PortfolioItem } from '@/components/landing/Portfolio';
 import { getPortfolioItems, getPortfolioCategories, getPageContent, getTestimonials } from '@/lib/db';
+import { createServerClient } from '@/lib/supabase/server';
 
 
 export default async function Home() {
+  const supabase = createServerClient();
+  
   const [
     portfolioItems,
     portfolioCategories,
@@ -21,12 +24,12 @@ export default async function Home() {
     testimonials,
     aboutContent,
   ] = await Promise.all([
-    getPortfolioItems(),
-    getPortfolioCategories(),
-    getPageContent('hero'),
-    getPageContent('process'),
-    getTestimonials(),
-    getPageContent('about'),
+    getPortfolioItems(supabase),
+    getPortfolioCategories(supabase),
+    getPageContent(supabase, 'hero'),
+    getPageContent(supabase, 'process'),
+    getTestimonials(supabase),
+    getPageContent(supabase, 'about'),
   ]);
 
   return (

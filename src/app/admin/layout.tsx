@@ -18,27 +18,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import * as React from 'react';
 import { NotificationBell } from './components/NotificationBell';
 import AdminNav from './components/AdminNav';
-
-// Mock user data as there is no DB
-const user = {
-    user_metadata: {
-        avatar_url: 'https://i.pravatar.cc/100?u=admin',
-        full_name: 'Admin User'
-    },
-    email: 'admin@example.com'
-}
-
-// Mock notifications as there is no DB
-const notifications = [
-    { id: 1, user_id: '1', type: 'task_overdue', title: 'Task Overdue: Initial Mockups', description: 'The task "Initial Mockups" was due yesterday.', link: '/admin/tasks', is_read: false, created_at: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString() },
-    { id: 2, user_id: '1', type: 'client', title: 'New Client Added', description: 'You\'ve added a new client: Global Goods.', link: '/admin/clients', is_read: true, created_at: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString() },
-];
+import { createServerClient } from '@/lib/supabase/server';
+import { getNotifications } from '@/lib/db';
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = createServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const notifications = await getNotifications(supabase);
 
   return (
     <div className="bg-background min-h-screen">
@@ -50,7 +40,7 @@ export default async function AdminLayout({
           <div className="flex items-center gap-2">
             <ThemeToggle />
             
-            <NotificationBell initialNotifications={notifications} />
+            <NotificationBell initialNotifications={notifications as any[]} />
            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
