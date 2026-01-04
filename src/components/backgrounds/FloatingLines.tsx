@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { Renderer, Camera, Program, Mesh, Vec2, Color, Polyline } from 'ogl';
+import { Renderer, Camera, Program, Mesh, Vec2, Color, Polyline, Transform } from 'ogl';
 
 interface FloatingLinesProps {
   enabledWaves?: ('top' | 'middle' | 'bottom')[];
@@ -93,9 +93,7 @@ export default function FloatingLines({
     window.addEventListener('resize', resize, false);
     resize();
 
-    const scene = {
-      children: [] as (Mesh | Polyline)[],
-    };
+    const scene = new Transform();
 
     const mouse = new Vec2();
     if (interactive) {
@@ -151,9 +149,9 @@ export default function FloatingLines({
             (polyline as any).yOffset = config.yOffset;
             (polyline as any).bendRadius = bendRadius;
             (polyline as any).bendStrength = bendStrength;
+            polyline.setParent(scene);
             
             polylines.push(polyline);
-            scene.children.push(polyline);
         }
     });
 
@@ -190,7 +188,7 @@ export default function FloatingLines({
       window.removeEventListener('resize', resize);
       // Clean up OGL resources if possible, though ogl doesn't have a simple dispose method
     };
-  }, [enabledWaves, lineCount, lineDistance, bendRadius, bendStrength, interactive, parallax]);
+  }, [enabledWaves, lineCount, lineDistance, bendRadius, bendStrength, interactive, parallax, vertex, fragment]);
 
   return <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />;
 }
