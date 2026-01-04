@@ -8,6 +8,7 @@ import type { Project } from '@/app/admin/projects/page';
 import type { Client } from '@/app/admin/clients/page';
 import type { Task } from '@/app/admin/tasks/page';
 import { cookies } from 'next/headers';
+import { createAdminClient } from './supabase/admin';
 
 export async function handleContactForm(prevState: any, formData: FormData) {
     await new Promise(res => setTimeout(res, 1000));
@@ -31,7 +32,7 @@ export async function login(formData: FormData) {
     return redirect(`/login?message=${encodeURIComponent('Invalid email or password')}`);
   }
   
-  return redirect('/admin');
+  redirect('/admin');
 }
 
 export async function logout() {
@@ -189,4 +190,124 @@ export async function handleDeleteTask(id: number) {
     if (error) { return { success: false, error: error.message }; }
     revalidatePath('/admin/tasks');
     return { success: true };
+}
+
+
+const uploadFile = async (file: File, bucket: string, path: string) => {
+    const supabaseAdmin = createAdminClient();
+    const { error } = await supabaseAdmin.storage.from(bucket).upload(path, file, {
+        upsert: true,
+    });
+
+    if (error) {
+        console.error('Supabase upload error:', error);
+        throw new Error(`Supabase upload error: ${error.message}`);
+    }
+
+    const { data } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
+    return data.publicUrl;
+};
+
+async function processPortfolioItem(values: any) {
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Unauthorized');
+    
+    const { imageFile, screenshotFiles, tags, removedScreenshots, ...rest } = values;
+
+    const portfolioData: any = {
+        ...rest,
+        user_id: user.id,
+        tags: tags.split(',').map((t: string) => t.trim()).filter(Boolean),
+    };
+    
+    // Handle main image upload
+    if (imageFile) {
+        const imagePath = `public/${user.id}/${values.slug}-${imageFile.name}`;
+        portfolioData.image = await uploadFile(imageFile, 'portfolio-images', imagePath);
+    }
+    
+    // Handle screenshots upload
+    const existingScreenshots = values.id ? 
+        (await supabase.from('portfolio_items').select('screenshots').eq('id', values.id).single()).data?.screenshots || [] 
+        : [];
+        
+    let finalScreenshots = existingScreenshots.filter((url: string) => !removedScreenshots?.includes(url));
+
+    if (screenshotFiles && screenshotFiles.length > 0) {
+        const screenshotUploads = Array.from(screenshotFiles).map(async (file: any) => {
+            const screenshotPath = `public/${user.id}/${values.slug}-screenshots-${file.name}`;
+            return uploadFile(file, 'portfolio-images', screenshotPath);
+        });
+        const newScreenshotUrls = await Promise.all(screenshotUploads);
+        finalScreenshots = [...finalScreenshots, ...newScreenshotUrls];
+    }
+    portfolioData.screenshots = finalScreenshots;
+    
+    return portfolioData;
+}
+
+
+export async function handleAddPortfolioWork(values: any) {
+    try {
+        const cookieStore = cookies();
+        const supabase = createServerClient(cookieStore);
+        const portfolioData = await processPortfolioItem(values);
+        
+        const { error } = await supabase.from('portfolio_items').insert([portfolioData]).select();
+        
+        if (error) throw error;
+        revalidatePath('/admin/portfolio/projects');
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message };
+    }
+}
+
+export async function handleUpdatePortfolioWork(id: number, values: any) {
+    try {
+        const cookieStore = cookies();
+        const supabase = createServerClient(cookieStore);
+        const portfolioData = await processPortfolioItem({ id, ...values });
+        
+        const { error } = await supabase.from('portfolio_items').update(portfolioData).eq('id', id);
+
+        if (error) throw error;
+        revalidatePath('/admin/portfolio/projects');
+        revalidatePath(`/projects/${values.slug}`);
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message };
+    }
+}
+
+export async function handleDeletePortfolioWork(id: number) {
+    try {
+        const cookieStore = cookies();
+        const supabase = createServerClient(cookieStore);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Unauthorized');
+
+        // Optional: remove files from storage
+        const { data: item } = await supabase.from('portfolio_items').select('image, screenshots').eq('id', id).single();
+        if (item) {
+            const supabaseAdmin = createAdminClient();
+            const filesToDelete = [];
+            if(item.image) filesToDelete.push(item.image.split('/').slice(-2).join('/'));
+            if(item.screenshots) filesToDelete.push(...item.screenshots.map(s => s.split('/').slice(-2).join('/')));
+            if (filesToDelete.length > 0) {
+               // await supabaseAdmin.storage.from('portfolio-images').remove(filesToDelete.map(f => `public/${user.id}/${f}`));
+            }
+        }
+        
+        const { error } = await supabase.from('portfolio_items').delete().eq('id', id);
+
+        if (error) throw error;
+        
+        revalidatePath('/admin/portfolio/projects');
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message };
+    }
 }

@@ -5,11 +5,8 @@ import type { Client } from '@/app/admin/clients/page';
 import type { Project } from '@/app/admin/projects/page';
 import type { Task } from '@/app/admin/tasks/page';
 
-// The createServerClient can be used in Server Components, Server Actions, and Route Handlers.
-// It is not meant for Client Components.
-
 export async function getPortfolioItems(supabase: SupabaseClient): Promise<PortfolioItem[]> {
-    const { data, error } = await supabase.from('portfolio_items').select('*');
+    const { data, error } = await supabase.from('portfolio_items').select('*').order('created_at', { ascending: false });
     if (error) {
         console.error('Error fetching portfolio items:', error);
         return [];
@@ -168,5 +165,70 @@ export async function markNotificationsAsRead(supabase: SupabaseClient) {
     if (error) {
         return { success: false, error: error.message };
     }
+    revalidatePath('/admin');
     return { success: true };
+}
+
+export async function getReportsData(supabase: SupabaseClient) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+
+    try {
+        const [
+            totalBilledRes,
+            projectsRes,
+            clientsRes,
+            tasksRes,
+            incomeDataRes,
+            workloadDataRes,
+            clientLeaderboardRes
+        ] = await Promise.all([
+            supabase.rpc('get_total_billed', { p_user_id: user.id }),
+            supabase.from('projects').select('status', { count: 'exact' }).eq('user_id', user.id),
+            supabase.from('clients').select('id', { count: 'exact' }).eq('user_id', user.id),
+            supabase.from('tasks').select('priority', { count: 'exact' }).eq('user_id', user.id),
+            supabase.rpc('get_monthly_income', { p_user_id: user.id }),
+            supabase.rpc('get_workload_by_category', { p_user_id: user.id }),
+            supabase.rpc('get_client_leaderboard', { p_user_id: user.id })
+        ]);
+
+        const a = (res: any) => { if(res.error) throw res.error; return res.data };
+        const totalBilled = a(totalBilledRes);
+        const projects = a(projectsRes);
+        const clients = a(clientsRes);
+        const tasks = a(tasksRes);
+        const incomeData = a(incomeDataRes);
+        const workloadData = a(workloadDataRes);
+        const clientLeaderboard = a(clientLeaderboardRes);
+
+        const completedProjectsCount = projects.filter(p => p.status === 'completed').length;
+        const activeProjectsCount = projects.filter(p => p.status === 'in-progress').length;
+
+        const projectStatusData = [
+            { name: 'Completed', value: completedProjectsCount },
+            { name: 'In Progress', value: activeProjectsCount },
+            { name: 'Planning', value: projects.filter(p => p.status === 'planning').length }
+        ];
+
+        const taskPriorityData = [
+            { name: 'High', value: tasks.filter(t => t.priority === 'high').length },
+            { name: 'Medium', value: tasks.filter(t => t.priority === 'medium').length },
+            { name: 'Low', value: tasks.filter(t => t.priority === 'low').length }
+        ];
+
+        return {
+            totalBilled,
+            completedProjectsCount,
+            totalClientsCount: clients.length,
+            activeProjectsCount,
+            incomeData,
+            workloadData,
+            clientLeaderboard,
+            projectStatusData,
+            taskPriorityData
+        };
+    } catch (error) {
+        console.error('Failed to get reports data:', error);
+        return null;
+    }
 }

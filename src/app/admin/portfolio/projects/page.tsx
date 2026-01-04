@@ -52,6 +52,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Pagination } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { PortfolioItem } from '@/components/landing/Portfolio';
+import { handleAddPortfolioWork, handleDeletePortfolioWork, handleUpdatePortfolioWork } from '@/lib/actions';
+import { getPortfolioItems, getPortfolioCategories } from '@/lib/db';
+import { createClient } from '@/lib/supabase/client';
+
 
 export default function AdminProjectsPage() {
   const [portfolioItems, setPortfolioItems] = React.useState<PortfolioItem[]>([]);
@@ -65,22 +69,21 @@ export default function AdminProjectsPage() {
   const [currentPage, setCurrentPage] = React.useState(1);
   const itemsPerPage = 10;
   
-  React.useEffect(() => {
-    const fetchItems = async () => {
+  const fetchItems = React.useCallback(async () => {
       setLoading(true);
-      // Mock data
-       const items: PortfolioItem[] = [
-        { id: 1, title: 'E-commerce Platform', slug: 'e-commerce-platform', description: 'A robust and scalable online store built with Next.js and Stripe.', fullDescription: 'Full description here.', image: 'https://picsum.photos/seed/ecom/600/400', hint: 'online store', tags: ['Next.js', 'Stripe'], category: 'Web', link: '#', screenshots: []},
-        { id: 2, title: 'Task Management App', slug: 'task-app', description: 'A sleek mobile app for managing tasks.', fullDescription: 'Full description here.', image: 'https://picsum.photos/seed/taskapp/600/400', hint: 'mobile productivity', tags: ['React Native', 'Supabase'], category: 'Mobile', link: '#', screenshots: []},
-        { id: 3, title: 'Branding & UI Kit', slug: 'ui-kit', description: 'A complete brand identity and component library.', fullDescription: 'Full description here.', image: 'https://picsum.photos/seed/design/600/400', hint: 'design system', tags: ['Figma', 'UI/UX'], category: 'Design', link: '#', screenshots: []},
-       ];
-       const cats = [{id: 1, name: 'Web'}, {id: 2, name: 'Mobile'}, {id: 3, name: 'Design'}];
-      setPortfolioItems(items);
-      setCategories(cats);
+      const supabase = createClient();
+      const [items, cats] = await Promise.all([
+        getPortfolioItems(supabase),
+        getPortfolioCategories(supabase)
+      ]);
+      setPortfolioItems(items as PortfolioItem[]);
+      setCategories(cats as {id: number, name: string}[]);
       setLoading(false);
-    };
+    }, []);
+
+  React.useEffect(() => {
     fetchItems();
-  }, []);
+  }, [fetchItems]);
 
   const paginatedItems = React.useMemo(() => {
     if (!portfolioItems) return [];
@@ -98,32 +101,40 @@ export default function AdminProjectsPage() {
 
 
   const onAddWork = async (values: any) => {
-    const newWork = {
-      ...values,
-      id: Math.random(),
-      tags: values.tags.split(',').map((t:string) => t.trim()),
-    };
-    setPortfolioItems(prev => [newWork, ...prev]);
-    setIsAddDialogOpen(false);
-    toast({
-        title: "Work Published!",
-        description: "Your new work has been added to the portfolio.",
-    });
+    const result = await handleAddPortfolioWork(values);
+    if(result.success) {
+      await fetchItems();
+      setIsAddDialogOpen(false);
+      toast({
+          title: "Work Published!",
+          description: "Your new work has been added to the portfolio.",
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error publishing work',
+        description: result.error,
+      })
+    }
   }
 
   const onEditWork = async (values: any) => {
     if (!editingProject?.id) return;
-    const updatedWork = {
-      ...editingProject,
-      ...values,
-      tags: values.tags.split(',').map((t:string) => t.trim()),
-    };
-    setPortfolioItems(prev => prev.map(p => p.id === editingProject.id ? updatedWork : p));
-    setEditingProject(null);
-    toast({
-        title: "Work Updated!",
-        description: "Your work has been successfully updated.",
-    });
+    const result = await handleUpdatePortfolioWork(editingProject.id, values);
+     if(result.success) {
+      await fetchItems();
+      setEditingProject(null);
+      toast({
+          title: "Work Updated!",
+          description: "Your work has been successfully updated.",
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error updating work',
+        description: result.error,
+      })
+    }
   }
 
   const handleEdit = (project: PortfolioItem) => {
@@ -136,12 +147,21 @@ export default function AdminProjectsPage() {
 
   const handleDeleteConfirm = async () => {
     if (projectToDelete?.id) {
-        setPortfolioItems(prev => prev.filter(p => p.id !== projectToDelete!.id));
-        toast({
-            title: 'Work Deleted',
-            description: `"${projectToDelete.title}" has been removed.`,
-        });
-        setProjectToDelete(null);
+        const result = await handleDeletePortfolioWork(projectToDelete.id);
+        if(result.success) {
+          await fetchItems();
+          toast({
+              title: 'Work Deleted',
+              description: `"${projectToDelete.title}" has been removed.`,
+          });
+          setProjectToDelete(null);
+        } else {
+            toast({
+              variant: 'destructive',
+              title: 'Error deleting work',
+              description: result.error,
+            })
+        }
     }
   };
   
@@ -225,7 +245,7 @@ export default function AdminProjectsPage() {
           </AlertDialogContent>
         </AlertDialog>
         <div className="flex-1 overflow-y-auto pb-8">
-            <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl flex-1 flex flex-col min-h-0">
+            <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl dark:shadow-none rounded-2xl flex-1 flex flex-col min-h-0">
                 <CardHeader>
                 <CardTitle>Manage Your Portfolio</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">
