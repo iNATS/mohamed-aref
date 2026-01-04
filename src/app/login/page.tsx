@@ -30,11 +30,12 @@ export default function LoginPage({ searchParams }: { searchParams: { message: s
                         placeholder="m@example.com"
                         required
                         className="bg-background"
+                        defaultValue="admin@example.com"
                     />
                     </div>
                     <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" name="password" type="password" required  className="bg-background" />
+                    <Input id="password" name="password" type="password" required  className="bg-background" defaultValue="password" />
                     </div>
                     <Button formAction={login} className="w-full rounded-lg">
                         Sign In

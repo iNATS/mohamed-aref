@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getDashboardData } from '@/lib/db';
 
 interface DashboardData {
     activeProjectsCount: number;
@@ -28,25 +29,7 @@ export default function AdminDashboard() {
   React.useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      // Mock Data
-      const dashboardData = {
-          activeProjectsCount: 2,
-          pendingTasksCount: 4,
-          newClientsCount: 1,
-          overdueTasksCount: 1,
-          upcomingDeadlines: [
-              { id: 1, title: 'Develop Navigation Component', due_date: new Date(new Date().setDate(new Date().getDate() + 5)), projectTitle: 'Project Phoenix' },
-              { id: 2, title: 'Finalize App Store Screenshots', due_date: new Date(new Date().setDate(new Date().getDate() + 10)), projectTitle: 'Mobile App Launch' },
-          ],
-          activeProjects: [
-              { id: 1, title: 'Project Phoenix', start_date: new Date(new Date().setDate(new Date().getDate() - 30)), end_date: new Date(new Date().setDate(new Date().getDate() + 60)), client: { name: 'Innovate Inc.', avatar: 'https://i.pravatar.cc/100?u=innovate' } },
-              { id: 2, title: 'Mobile App Launch', start_date: new Date(new Date().setDate(new Date().getDate() - 15)), end_date: new Date(new Date().setDate(new Date().getDate() + 120)), client: { name: 'Innovate Inc.', avatar: 'https://i.pravatar.cc/100?u=innovate' } },
-          ],
-          recentClients: [
-              { id: 1, name: 'Global Goods', company: 'Global Goods', avatar: 'https://i.pravatar.cc/100?u=global' },
-              { id: 2, name: 'Creative Solutions', company: 'Creative Solutions LLC', avatar: 'https://i.pravatar.cc/100?u=creative' },
-          ],
-      };
+      const dashboardData = await getDashboardData();
       setData(dashboardData as DashboardData);
       setLoading(false);
     }
