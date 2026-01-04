@@ -51,6 +51,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { handleAddProject, handleUpdateProject, handleDeleteProject } from '@/lib/actions';
 import type { Client } from '../clients/page';
+import { createClient } from '@/lib/supabase/client';
+import { getProjects, getClients } from '@/lib/db';
 
 export type Project = {
   id: number;
@@ -65,20 +67,6 @@ export type Project = {
 };
 
 export type ProjectStatus = 'planning' | 'in-progress' | 'completed';
-
-// MOCK DATA
-const initialClients: Client[] = [
-    { id: '1', name: 'Innovate Inc.', email: 'contact@innovate.com', avatar: 'https://i.pravatar.cc/100?u=innovate', status: 'active', company: 'Innovate Inc.', phone: '555-0101', address: '123 Tech Avenue, Silicon Valley', notes: 'Leading tech startup.'},
-    { id: '2', name: 'Creative Solutions', email: 'hello@creative.co', avatar: 'https://i.pravatar.cc/100?u=creative', status: 'active', company: 'Creative Solutions LLC', phone: '555-0102', address: '456 Design Drive, Arts District', notes: 'Design agency.'},
-    { id: '3', name: 'Global Goods', email: 'support@globalgoods.com', avatar: 'https://i.pravatar.cc/100?u=global', status: 'new', company: 'Global Goods', phone: '555-0103', address: '789 Market Street, Commerce City', notes: 'New client.'},
-];
-const initialProjects: Project[] = [
-    { id: 1, title: 'Website Redesign', description: 'Complete overhaul of the corporate website.', status: 'in-progress', client_id: '1', budget: 25000, start_date: new Date('2023-08-01'), end_date: new Date('2023-12-15'), user_id: '1' },
-    { id: 2, title: 'Mobile App Launch', description: 'Launch campaign for the new mobile application.', status: 'planning', client_id: '2', budget: 40000, start_date: new Date('2023-09-15'), end_date: new Date('2024-01-30'), user_id: '1' },
-    { id: 3, title: 'E-commerce Integration', description: 'Integrating a new payment gateway.', status: 'completed', client_id: '1', budget: 15000, start_date: new Date('2023-06-01'), end_date: new Date('2023-07-30'), user_id: '1' },
-];
-// END MOCK DATA
-
 
 const getStatusBadge = (status: ProjectStatus) => {
     switch (status) {
@@ -117,7 +105,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onView, clients }: { project: 
     const format = (date: Date, fmt: string) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: fmt.includes('yyyy') ? 'numeric' : undefined });
     
     return (
-        <div ref={setNodeRef} style={style} {...(isMounted ? attributes : {})}>
+        <div ref={setNodeRef} style={style} {...(isMounted ? attributes : {})} aria-describedby={isMounted ? attributes['aria-describedby'] : undefined}>
             <Card className="bg-white/70 dark:bg-white/10 backdrop-blur-3xl border-zinc-200/50 dark:border-white/20 dark:shadow-lg rounded-xl mb-4 transition-shadow hover:shadow-xl dark:hover:shadow-2xl cursor-pointer" onClick={() => onView(project)}>
                 <CardHeader className="p-4 pb-2">
                     <div className="flex justify-between items-start">
@@ -331,8 +319,8 @@ const ProjectViewDialog = ({ project, open, onOpenChange, clients }: { project: 
 }
 
 export default function ProjectsPage() {
-    const [projects, setProjects] = React.useState<Project[]>(initialProjects);
-    const [clients, setClients] = React.useState<Client[]>(initialClients);
+    const [projects, setProjects] = React.useState<Project[]>([]);
+    const [clients, setClients] = React.useState<Client[]>([]);
     const [activeProject, setActiveProject] = React.useState<Project | null>(null);
     const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
     const [editingProject, setEditingProject] = React.useState<Project | null>(null);
@@ -357,9 +345,13 @@ export default function ProjectsPage() {
     const columnTitles = { planning: 'Planning', 'in-progress': 'In Progress', completed: 'Completed' };
 
     const fetchProjects = React.useCallback(async () => {
-        // In a real app, you would fetch from the server
-        setProjects(initialProjects);
-        setClients(initialClients);
+        const supabase = createClient();
+        const [projectsData, clientsData] = await Promise.all([
+          getProjects(supabase),
+          getClients(supabase)
+        ]);
+        setProjects(projectsData);
+        setClients(clientsData);
     }, []);
 
     React.useEffect(() => {
@@ -690,5 +682,7 @@ const ProgressWithIndicator = ({ indicatorClassName, ...props }: React.Component
 
     
 
+
+    
 
     
