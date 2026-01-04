@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -60,7 +59,7 @@ export type Project = {
   title: string;
   description: string;
   status: 'planning' | 'in-progress' | 'completed';
-  client_id: number;
+  client_id: string;
   budget: number;
   start_date: Date;
   end_date: Date;

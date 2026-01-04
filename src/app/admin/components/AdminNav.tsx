@@ -1,4 +1,3 @@
-
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -10,6 +9,10 @@ import {
   LayoutGrid,
   Menu,
   ChevronDown,
+  MessageSquare,
+  FolderKanban,
+  ListTodo,
+  FileBarChart,
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -24,30 +27,29 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import * as React from 'react';
 
 const navItems = [
-    { href: '/admin/core/dashboard', label: 'Dashboard', icon: Home },
-    { href: '/admin/workspace/meeting-room', label: 'Communications', icon: Users },
+    { href: '/admin/dashboard', label: 'Dashboard', icon: Home },
+    { href: '/admin/communications', label: 'Communications', icon: MessageSquare },
     {  
       label: 'Workspace', icon: LayoutGrid, 
       subItems: [
-        { href: '/admin/workspace/clients', label: 'Clients' },
-        { href: '/admin/workspace/tasks', label: 'Tasks' },
-        { href: '/admin/workspace/projects', label: 'Projects' },
+        { href: '/admin/clients', label: 'Clients', icon: Users },
+        { href: '/admin/projects', label: 'Projects', icon: Briefcase },
+        { href: '/admin/tasks', label: 'Tasks', icon: ListTodo },
       ]
     },
     {  
       label: 'Portfolio', icon: Briefcase,
       subItems: [
-        { href: '/admin/portfolio/projects', label: 'My Works' },
-        { href: '/admin/portfolio/page-content', label: 'Page Content' },
+        { href: '/admin/portfolio/projects', label: 'My Works', icon: FolderKanban },
+        { href: '/admin/portfolio/page-content', label: 'Page Content', icon: Users },
       ]
     },
-    { href: '/admin/core/reports', label: 'Reports', icon: BarChart3 },
+    { href: '/admin/reports', label: 'Reports', icon: FileBarChart },
 ];
 
 const NavLink = ({ item, isMobile = false }: { item: any, isMobile?: boolean }) => {
     const pathname = usePathname();
     const Icon = item.icon;
-    const isActive = pathname === item.href;
 
     if (item.subItems) {
       const isSubActive = item.subItems.some((subItem: any) => pathname.startsWith(subItem.href));
@@ -70,7 +72,10 @@ const NavLink = ({ item, isMobile = false }: { item: any, isMobile?: boolean }) 
           <DropdownMenuContent className="bg-background/80 backdrop-blur-xl border-zinc-200/50 dark:border-white/10 text-foreground dark:text-white">
             {item.subItems.map((subItem: any) => (
               <DropdownMenuItem key={subItem.href} asChild>
-                <Link href={subItem.href}>{subItem.label}</Link>
+                <Link href={subItem.href} className="flex items-center gap-2">
+                  {subItem.icon && <subItem.icon className="h-4 w-4 text-foreground/60" />}
+                  {subItem.label}
+                </Link>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -78,6 +83,7 @@ const NavLink = ({ item, isMobile = false }: { item: any, isMobile?: boolean }) 
       );
     }
     
+    const isActive = pathname === item.href;
     return (
       <Button
         variant="ghost"

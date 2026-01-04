@@ -1,4 +1,3 @@
-
 import {
   Settings,
   Shield,
@@ -64,10 +63,10 @@ export default async function AdminLayout({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                  <DropdownMenuItem asChild>
-                  <Link href="/admin/core/settings"><Settings className="mr-2 h-4 w-4" /><span>Settings</span></Link>
+                  <Link href="/admin/settings"><Settings className="mr-2 h-4 w-4" /><span>Settings</span></Link>
                 </DropdownMenuItem>
                  <DropdownMenuItem asChild>
-                  <Link href="/admin/core/settings"><Shield className="mr-2 h-4 w-4" /><span>Security</span></Link>
+                  <Link href="/admin/settings"><Shield className="mr-2 h-4 w-4" /><span>Security</span></Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
