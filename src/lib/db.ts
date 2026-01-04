@@ -1,4 +1,5 @@
 
+
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { PortfolioItem } from '@/components/landing/Portfolio';
 import type { Client } from '@/app/admin/clients/page';
@@ -63,7 +64,7 @@ export async function getClients(supabase: SupabaseClient): Promise<Client[]> {
         console.error('Error fetching clients:', error);
         return [];
     }
-    return data as Client[];
+    return (data as Client[]) || [];
 }
 
 export async function getProjects(supabase: SupabaseClient): Promise<Project[]> {
@@ -75,7 +76,7 @@ export async function getProjects(supabase: SupabaseClient): Promise<Project[]> 
         console.error('Error fetching projects:', error);
         return [];
     }
-    return data as Project[];
+    return (data as Project[]) || [];
 }
 
 export async function getTasks(supabase: SupabaseClient): Promise<Task[]> {
