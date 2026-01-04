@@ -94,6 +94,11 @@ const getStatusBadge = (status: ProjectStatus) => {
 const ProjectCard = ({ project, onEdit, onDelete, onView, clients }: { project: Project, onEdit: (project: Project) => void, onDelete: (project: Project) => void, onView: (project: Project) => void, clients: Client[] }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id, data: {type: 'Project', project} });
     const client = clients.find(c => c.id === project.client_id);
+    const [isMounted, setIsMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -112,7 +117,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onView, clients }: { project: 
     const format = (date: Date, fmt: string) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: fmt.includes('yyyy') ? 'numeric' : undefined });
     
     return (
-        <div ref={setNodeRef} style={style} {...attributes}>
+        <div ref={setNodeRef} style={style} {...(isMounted ? attributes : {})}>
             <Card className="bg-white/70 dark:bg-white/10 backdrop-blur-3xl border-zinc-200/50 dark:border-white/20 dark:shadow-lg rounded-xl mb-4 transition-shadow hover:shadow-xl dark:hover:shadow-2xl cursor-pointer" onClick={() => onView(project)}>
                 <CardHeader className="p-4 pb-2">
                     <div className="flex justify-between items-start">
@@ -685,3 +690,5 @@ const ProgressWithIndicator = ({ indicatorClassName, ...props }: React.Component
 
     
 
+
+    
