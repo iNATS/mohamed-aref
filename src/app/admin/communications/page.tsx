@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -149,7 +150,14 @@ const ScheduleMeetingForm = ({ onSave, onCancel, meetingToEdit, clients }: { onS
         onSave(newMeeting as any);
     };
 
-    const format = (date: Date, format: string) => date.toLocaleDateString();
+    const formatDate = (date: Date, format: string) => {
+        // A simple date formatter, you might want to use a library like date-fns for more complex needs
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+    }
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -182,7 +190,7 @@ const ScheduleMeetingForm = ({ onSave, onCancel, meetingToEdit, clients }: { onS
                         )}
                     >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
+                        {date ? formatDate(date, "PPP") : <span>Pick a date</span>}
                     </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 bg-background/80 backdrop-blur-xl border-zinc-200/50 dark:border-white/10">
@@ -411,3 +419,5 @@ export default function CommunicationsPage() {
     </>
   );
 }
+
+    

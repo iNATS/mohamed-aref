@@ -11,6 +11,8 @@ import { Noise } from '../backgrounds/Noise';
 import { Starfield } from '../backgrounds/Starfield';
 import { Gradient } from '../backgrounds/Gradient';
 import FloatingLines from '../backgrounds/FloatingLines';
+import Grid from '../backgrounds/Grid';
+import Vortex from '../backgrounds/Vortex';
 import SplitText from '../SplitText';
 
 const backgroundComponents = {
@@ -19,6 +21,8 @@ const backgroundComponents = {
     starfield: Starfield,
     gradient: Gradient,
     floatingLines: FloatingLines,
+    grid: Grid,
+    vortex: Vortex,
 };
 
 export function Hero({ content }: { content: any }) {
@@ -109,3 +113,5 @@ export function Hero({ content }: { content: any }) {
     </section>
   );
 }
+
+    

@@ -138,6 +138,8 @@ export default function PageContentPage() {
                                     <SelectItem value="starfield">Starfield</SelectItem>
                                     <SelectItem value="noise">Noise</SelectItem>
                                     <SelectItem value="floatingLines">Floating Lines</SelectItem>
+                                    <SelectItem value="grid">Grid</SelectItem>
+                                    <SelectItem value="vortex">Vortex</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -230,3 +232,5 @@ export default function PageContentPage() {
     </>
   );
 }
+
+    

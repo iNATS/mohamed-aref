@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -169,8 +170,8 @@ const ProjectColumn = ({ title, status, projects, onEdit, onDelete, onView, clie
 };
 
 const ProjectForm = ({ project, onSubmit, onCancel, clients }: { project?: Project, onSubmit: (values: any) => void, onCancel: () => void, clients: Client[] }) => {
-    const [startDate, setStartDate] = React.useState<Date | undefined>(project ? new Date(project.start_date) : undefined);
-    const [endDate, setEndDate] = React.useState<Date | undefined>(project ? new Date(project.end_date) : undefined);
+    const [startDate, setStartDate] = React.useState<Date | undefined>(project?.start_date ? new Date(project.start_date) : undefined);
+    const [endDate, setEndDate] = React.useState<Date | undefined>(project?.end_date ? new Date(project.end_date) : undefined);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -660,3 +661,5 @@ const ProgressWithIndicator = ({ indicatorClassName, ...props }: React.Component
   const originalProgress = Progress;
   // @ts-ignore
   originalProgress.Indicator = Progress.Indicator;
+
+    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Upload, KeyRound, Bell, Languages, Mail, MessageSquare, BarChart, Settings2, Code, Bot, FolderKanban, Trash2, PlusCircle, Info, Database } from 'lucide-react';
+import { Upload, KeyRound, Bell, Languages, Mail, MessageSquare, BarChart, Settings2, Code, Bot, FolderKanban, Trash2, PlusCircle, Info, Database, Share2, Link as LinkIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -92,6 +93,7 @@ const MailSettingsForm = () => {
                         <SelectContent className="bg-background/80 backdrop-blur-xl border-zinc-200/50 dark:border-white/10 text-foreground dark:text-white">
                             <SelectItem value="resend">Resend</SelectItem>
                             <SelectItem value="smtp">SMTP</SelectItem>
+                            <SelectItem value="gmail">Gmail (SMTP)</SelectItem>
                         </SelectContent>
                     </Select>
                     
@@ -112,16 +114,17 @@ const MailSettingsForm = () => {
                         </div>
                     )}
 
-                    {provider === 'smtp' && (
+                    {(provider === 'smtp' || provider === 'gmail') && (
                         <div className="space-y-4 pt-2">
                              <Label className="text-sm text-muted-foreground">Set the following variables in your .env file:</Label>
                              <div className="p-3 bg-black/10 dark:bg-white/10 rounded-md text-sm font-mono space-y-1">
-                                <p>SMTP_HOST=your_host</p>
-                                <p>SMTP_PORT=your_port</p>
+                                <p>SMTP_HOST={provider === 'gmail' ? 'smtp.gmail.com' : 'your_host'}</p>
+                                <p>SMTP_PORT={provider === 'gmail' ? '587' : 'your_port'}</p>
                                 <p>SMTP_USER=your_username</p>
                                 <p>SMTP_PASS=your_password</p>
                                 <p>SMTP_FROM=your_from_email</p>
                              </div>
+                             {provider === 'gmail' && <p className="text-xs text-muted-foreground">Note: You may need to generate an "App Password" for your Google Account to use with SMTP.</p>}
                         </div>
                     )}
 
@@ -187,6 +190,54 @@ const DatabaseSettingsForm = () => {
     );
 };
 
+const SocialLinksForm = () => {
+    const { toast } = useToast();
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        toast({ title: "Social links updated!" });
+    };
+
+    return (
+        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Share2 className="h-5 w-5" /> Social Media Links</CardTitle>
+                <CardDescription className="text-zinc-600 dark:text-white/60">Manage the URLs for the social media floating action button.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                    <div className="space-y-2">
+                        <Label htmlFor="social-phone">Phone</Label>
+                        <Input id="social-phone" name="phone" placeholder="tel:+1234567890" defaultValue="tel:+1234567890" className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="social-whatsapp">WhatsApp</Label>
+                        <Input id="social-whatsapp" name="whatsapp" placeholder="https://wa.me/..." defaultValue="https://wa.me/1234567890" className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="social-facebook">Facebook</Label>
+                        <Input id="social-facebook" name="facebook" placeholder="https://facebook.com/..." defaultValue="https://facebook.com" className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="social-instagram">Instagram</Label>
+                        <Input id="social-instagram" name="instagram" placeholder="https://instagram.com/..." defaultValue="https://instagram.com" className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="social-twitter">X / Twitter</Label>
+                        <Input id="social-twitter" name="twitter" placeholder="https://twitter.com/..." defaultValue="https://twitter.com" className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="social-linkedin">LinkedIn</Label>
+                        <Input id="social-linkedin" name="linkedin" placeholder="https://linkedin.com/in/..." defaultValue="https://linkedin.com" className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
+                    </div>
+                    <div className="flex justify-end">
+                        <Button type="submit" className="rounded-lg">Save Social Links</Button>
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
+    );
+};
+
 
 export default function SettingsPage() {
     const { toast } = useToast();
@@ -227,9 +278,10 @@ export default function SettingsPage() {
       </div>
       <div className="flex-1 overflow-y-auto pb-8">
          <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 max-w-4xl mb-8 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl">
+          <TabsList className="grid w-full grid-cols-1 md:grid-cols-7 max-w-4xl mb-8 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl">
             <TabsTrigger value="profile" className="rounded-lg">Profile</TabsTrigger>
             <TabsTrigger value="security" className="rounded-lg">Security</TabsTrigger>
+            <TabsTrigger value="social" className="rounded-lg">Social Links</TabsTrigger>
             <TabsTrigger value="preferences" className="rounded-lg">Preferences</TabsTrigger>
             <TabsTrigger value="integrations" className="rounded-lg">Integrations</TabsTrigger>
             <TabsTrigger value="portfolio" className="rounded-lg">Portfolio</TabsTrigger>
@@ -316,6 +368,10 @@ export default function SettingsPage() {
                 </form>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="social">
+            <SocialLinksForm />
           </TabsContent>
 
           <TabsContent value="preferences">
@@ -407,3 +463,5 @@ export default function SettingsPage() {
     </>
   );
 }
+
+    
