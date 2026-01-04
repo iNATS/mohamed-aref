@@ -35,8 +35,12 @@ export default function FloatingLines({
     uniform vec2 uResolution;
     uniform float uDPR;
     uniform float uThickness;
+    uniform mat4 viewMatrix;
+    uniform mat4 projectionMatrix;
+    uniform mat4 modelMatrix;
 
     vec4 getPosition() {
+        mat4 mvp = projectionMatrix * viewMatrix * modelMatrix;
         vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);
         vec2 nextScreen = next.xy * aspect;
         vec2 prevScreen = prev.xy * aspect;
@@ -54,7 +58,7 @@ export default function FloatingLines({
         normal *= 1.0 - pow(abs(uv.y - 0.5) * 2.0, 2.0);
 
         vec2 newPos = position.xy * aspect + normal * side * uThickness * uDPR;
-        return vec4(newPos / aspect, 0.0, 1.0);
+        return mvp * vec4(newPos / aspect, 0.0, 1.0);
     }
 
     void main() {
@@ -64,8 +68,9 @@ export default function FloatingLines({
 
   const fragment = /* glsl */ `
     uniform float uTime;
+    uniform vec3 uColor;
     void main() {
-        gl_FragColor.rgb = vec3(0.95);
+        gl_FragColor.rgb = uColor;
         gl_FragColor.a = 1.0;
     }
   `;
@@ -141,15 +146,16 @@ export default function FloatingLines({
             const polyline = new Polyline(gl, {
               points,
               vertex,
+              fragment,
               uniforms: {
                 uColor: { value: config.color },
                 uThickness: { value: config.distance },
               },
+              parent: scene,
             });
             (polyline as any).yOffset = config.yOffset;
             (polyline as any).bendRadius = bendRadius;
             (polyline as any).bendStrength = bendStrength;
-            polyline.setParent(scene);
             
             polylines.push(polyline);
         }
