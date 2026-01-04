@@ -12,7 +12,7 @@ export async function getPortfolioItems(supabase: SupabaseClient): Promise<Portf
         console.error('Error fetching portfolio items:', error);
         return [];
     }
-    return data as PortfolioItem[];
+    return (data as PortfolioItem[]) || [];
 }
 
 export async function getPortfolioItemBySlug(supabase: SupabaseClient, slug: string): Promise<PortfolioItem | null> {
@@ -34,7 +34,7 @@ export async function getPortfolioCategories(supabase: SupabaseClient) {
         console.error('Error fetching portfolio categories:', error);
         return [];
     }
-    return data;
+    return data || [];
 }
 
 export async function getPageContent(supabase: SupabaseClient, section: string) {
@@ -52,7 +52,7 @@ export async function getTestimonials(supabase: SupabaseClient) {
         console.error('Error fetching testimonials:', error);
         return [];
     }
-    return data;
+    return data || [];
 }
 
 export async function getClients(supabase: SupabaseClient): Promise<Client[]> {
@@ -88,7 +88,7 @@ export async function getTasks(supabase: SupabaseClient): Promise<Task[]> {
         console.error('Error fetching tasks:', error);
         return [];
     }
-    return data as Task[];
+    return data || [];
 }
 
 export async function getDashboardData(supabase: SupabaseClient) {
@@ -150,7 +150,7 @@ export async function getNotifications(supabase: SupabaseClient) {
         console.error('Error fetching notifications:', error);
         return [];
     }
-    return data;
+    return data || [];
 }
 
 export async function markNotificationsAsRead(supabase: SupabaseClient) {
@@ -170,7 +170,7 @@ export async function markNotificationsAsRead(supabase: SupabaseClient) {
     return { success: true };
 }
 
-export async function getReportsData(supabase: SupabaseClient) {
+export async function getReportsData(supabase: SupabaseClient): Promise<ReportsData | null> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
@@ -193,28 +193,29 @@ export async function getReportsData(supabase: SupabaseClient) {
             supabase.rpc('get_client_leaderboard', { p_user_id: user.id })
         ]);
 
-        const a = (res: any) => { if(res.error) throw res.error; return res.data };
-        const totalBilled = a(totalBilledRes);
-        const projects = a(projectsRes);
-        const clients = a(clientsRes);
-        const tasks = a(tasksRes);
-        const incomeData = a(incomeDataRes);
-        const workloadData = a(workloadDataRes);
-        const clientLeaderboard = a(clientLeaderboardRes);
+        const a = (res: any) => { if (res.error && res.error.code !== 'PGRST116') { console.error('DB Error:', res.error); throw res.error; } return res.data };
 
-        const completedProjectsCount = projects.filter(p => p.status === 'completed').length;
-        const activeProjectsCount = projects.filter(p => p.status === 'in-progress').length;
+        const totalBilled = a(totalBilledRes) || 0;
+        const projects = a(projectsRes) || [];
+        const clients = a(clientsRes) || [];
+        const tasks = a(tasksRes) || [];
+        const incomeData = a(incomeDataRes) || [];
+        const workloadData = a(workloadDataRes) || [];
+        const clientLeaderboard = a(clientLeaderboardRes) || [];
+        
+        const completedProjectsCount = projects.filter((p: any) => p.status === 'completed').length;
+        const activeProjectsCount = projects.filter((p: any) => p.status === 'in-progress').length;
 
         const projectStatusData = [
             { name: 'Completed', value: completedProjectsCount },
             { name: 'In Progress', value: activeProjectsCount },
-            { name: 'Planning', value: projects.filter(p => p.status === 'planning').length }
+            { name: 'Planning', value: projects.filter((p: any) => p.status === 'planning').length }
         ];
 
         const taskPriorityData = [
-            { name: 'High', value: tasks.filter(t => t.priority === 'high').length },
-            { name: 'Medium', value: tasks.filter(t => t.priority === 'medium').length },
-            { name: 'Low', value: tasks.filter(t => t.priority === 'low').length }
+            { name: 'High', value: tasks.filter((t: any) => t.priority === 'high').length },
+            { name: 'Medium', value: tasks.filter((t: any) => t.priority === 'medium').length },
+            { name: 'Low', value: tasks.filter((t: any) => t.priority === 'low').length }
         ];
 
         return {
@@ -230,6 +231,28 @@ export async function getReportsData(supabase: SupabaseClient) {
         };
     } catch (error) {
         console.error('Failed to get reports data:', error);
-        return null;
+        return {
+             totalBilled: 0,
+            completedProjectsCount: 0,
+            totalClientsCount: 0,
+            activeProjectsCount: 0,
+            incomeData: [],
+            workloadData: [],
+            clientLeaderboard: [],
+            projectStatusData: [],
+            taskPriorityData: [],
+        };
     }
+}
+
+interface ReportsData {
+    totalBilled: number;
+    completedProjectsCount: number;
+    totalClientsCount: number;
+    activeProjectsCount: number;
+    incomeData: { name: string; income: number }[];
+    workloadData: { name: string; value: number }[];
+    clientLeaderboard: any[];
+    projectStatusData: { name: string; value: number }[];
+    taskPriorityData: { name: string; value: number }[];
 }
