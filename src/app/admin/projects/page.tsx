@@ -110,12 +110,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onView, clients }: { project: 
     const progress = totalDays > 0 ? Math.min(Math.max((daysPassed / totalDays) * 100, 0), 100) : (new Date() > endDate ? 100 : 0);
 
     const format = (date: Date, fmt: string) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: fmt.includes('yyyy') ? 'numeric' : undefined });
-    const formatDistanceToNowStrict = (date: Date) => {
-        const days = diff(date, new Date());
-        if (days < 0) return `${Math.abs(days)} days ago`;
-        return `in ${days} days`;
-    }
-
+    
     return (
         <div ref={setNodeRef} style={style} {...attributes}>
             <Card className="bg-white/70 dark:bg-white/10 backdrop-blur-3xl border-zinc-200/50 dark:border-white/20 shadow-lg rounded-xl mb-4 transition-shadow hover:shadow-2xl cursor-pointer" onClick={() => onView(project)}>
@@ -272,7 +267,12 @@ const ProjectViewDialog = ({ project, open, onOpenChange, clients }: { project: 
     const totalDays = diff(endDate, startDate);
     const daysPassed = diff(new Date(), startDate);
     const progress = totalDays > 0 ? Math.min(Math.max((daysPassed / totalDays) * 100, 0), 100) : (new Date() > endDate ? 100 : 0);
-    const timeRemaining = formatDistanceToNowStrict(endDate, { addSuffix: true });
+    
+    const timeRemaining = () => {
+        const days = diff(endDate, new Date());
+        if (days < 0) return `${Math.abs(days)} days ago`;
+        return `in ${days} days`;
+    };
 
     const format = (date: Date, fmt: string) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: fmt.includes('yyyy') ? 'numeric' : undefined });
 
@@ -308,7 +308,7 @@ const ProjectViewDialog = ({ project, open, onOpenChange, clients }: { project: 
                          <div className="p-4 rounded-lg bg-black/5 dark:bg-white/5 border border-zinc-200/80 dark:border-white/10">
                             <h4 className="font-semibold text-zinc-700 dark:text-white/80 mb-2 flex items-center gap-2"><CalendarIcon className="h-4 w-4"/> Timeline</h4>
                              <p className="text-sm text-zinc-600 dark:text-white/70">{format(startDate, "MMM d")} - {format(endDate, "MMM d, yyyy")}</p>
-                             <p className="text-xs text-zinc-500 dark:text-white/50">{timeRemaining}</p>
+                             <p className="text-xs text-zinc-500 dark:text-white/50">{timeRemaining()}</p>
                         </div>
                     </div>
 
