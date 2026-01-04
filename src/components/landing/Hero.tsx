@@ -22,12 +22,6 @@ const backgroundComponents = {
 };
 
 export function Hero({ content }: { content: any }) {
-  const [isMounted, setIsMounted] = useState(false);
-  
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   if (!content) {
     return <section id="home" className="relative w-full h-screen flex items-center justify-center text-center px-4 overflow-hidden" />;
   }
@@ -64,7 +58,7 @@ export function Hero({ content }: { content: any }) {
       
       <motion.div
         initial="hidden"
-        animate={isMounted ? 'visible' : 'hidden'}
+        animate="visible"
         transition={{ staggerChildren: 0.2, delayChildren: 0.1 }}
         className="relative z-10 w-full max-w-4xl mx-auto flex flex-col items-center"
       >
@@ -78,7 +72,7 @@ export function Hero({ content }: { content: any }) {
             {subtitle}
           </p>
           <SplitText
-            text="cant see this text"
+            text={title}
             className="text-5xl font-bold tracking-tighter sm:text-6xl md:text-7xl lg:text-8xl font-headline mt-2 bg-clip-text text-transparent bg-gradient-to-br from-primary via-primary/80 to-primary/40 dark:from-white dark:via-white/80 dark:to-white/40"
             splitType="chars"
             from={{ opacity: 0, y: 40, scale: 0.8 }}
