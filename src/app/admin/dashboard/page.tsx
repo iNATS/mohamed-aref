@@ -122,75 +122,83 @@ export default function AdminDashboard() {
           animate="visible"
         >
           <motion.div variants={itemVariants}>
-            <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70">Active Projects</CardTitle>
-                <Briefcase className="h-5 w-5 text-zinc-500 dark:text-white/50" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold">{data.activeProjectsCount}</div>
-                <Link href="/admin/projects" className="text-xs text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-1">View projects <ArrowRight className="h-3 w-3" /></Link>
-              </CardContent>
-            </Card>
+            <Link href="/admin/projects">
+              <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70">Active Projects</CardTitle>
+                  <Briefcase className="h-5 w-5 text-zinc-500 dark:text-white/50" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold">{data.activeProjectsCount}</div>
+                  <p className="text-xs text-blue-500 dark:text-blue-400 flex items-center gap-1">View projects <ArrowRight className="h-3 w-3" /></p>
+                </CardContent>
+              </Card>
+            </Link>
           </motion.div>
           <motion.div variants={itemVariants}>
-          <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70">Pending Tasks</CardTitle>
-              <ListTodo className="h-5 w-5 text-zinc-500 dark:text-white/50" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold">{data.pendingTasksCount}</div>
-              <Link href="/admin/tasks" className="text-xs text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-1">Manage tasks <ArrowRight className="h-3 w-3" /></Link>
-            </CardContent>
-          </Card>
+            <Link href="/admin/tasks">
+              <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70">Pending Tasks</CardTitle>
+                  <ListTodo className="h-5 w-5 text-zinc-500 dark:text-white/50" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold">{data.pendingTasksCount}</div>
+                  <p className="text-xs text-blue-500 dark:text-blue-400 flex items-center gap-1">Manage tasks <ArrowRight className="h-3 w-3" /></p>
+                </CardContent>
+              </Card>
+            </Link>
           </motion.div>
           <motion.div variants={itemVariants}>
-          <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70">New Clients</CardTitle>
-              <Users className="h-5 w-5 text-zinc-500 dark:text-white/50" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold">{data.newClientsCount}</div>
-               <Link href="/admin/clients" className="text-xs text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-1">View clients <ArrowRight className="h-3 w-3" /></Link>
-            </CardContent>
-          </Card>
+            <Link href="/admin/clients">
+              <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70">New Clients</CardTitle>
+                  <Users className="h-5 w-5 text-zinc-500 dark:text-white/50" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-bold">{data.newClientsCount}</div>
+                  <p className="text-xs text-blue-500 dark:text-blue-400 flex items-center gap-1">View clients <ArrowRight className="h-3 w-3" /></p>
+                </CardContent>
+              </Card>
+            </Link>
           </motion.div>
           <motion.div variants={itemVariants}>
-          <Card className={cn(
-              "backdrop-blur-2xl shadow-xl rounded-2xl",
-              data.overdueTasksCount > 0 
-                  ? "bg-red-500/10 dark:bg-red-500/10 border-red-400/20 dark:border-red-400/20"
-                  : "bg-green-500/10 dark:bg-green-500/10 border-green-400/20 dark:border-green-400/20"
-          )}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className={cn(
-                  "text-sm font-medium",
-                   data.overdueTasksCount > 0 
-                      ? "text-red-500 dark:text-red-300"
-                      : "text-green-600 dark:text-green-300"
-              )}>Overdue Tasks</CardTitle>
-               {data.overdueTasksCount > 0 
-                  ? <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                  : <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-              }
-            </CardHeader>
-            <CardContent>
-              <div className={cn(
-                  "text-4xl font-bold",
-                   data.overdueTasksCount > 0 
-                      ? "text-red-600 dark:text-red-400"
-                      : "text-green-600 dark:text-green-400"
-              )}>{data.overdueTasksCount}</div>
-              <p className={cn(
-                  "text-xs",
-                  data.overdueTasksCount > 0
-                      ? "text-red-600/80 dark:text-red-400/70"
-                      : "text-green-600/80 dark:text-green-400/70"
-              )}>{data.overdueTasksCount > 0 ? "Action required" : "All tasks on track"}</p>
-            </CardContent>
-          </Card>
+            <Link href="/admin/tasks">
+              <Card className={cn(
+                  "backdrop-blur-2xl dark:shadow-xl rounded-2xl",
+                  data.overdueTasksCount > 0 
+                      ? "bg-red-500/10 dark:bg-red-500/10 border-red-400/20 dark:border-red-400/20"
+                      : "bg-green-500/10 dark:bg-green-500/10 border-green-400/20 dark:border-green-400/20"
+              )}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className={cn(
+                      "text-sm font-medium",
+                      data.overdueTasksCount > 0 
+                          ? "text-red-500 dark:text-red-300"
+                          : "text-green-600 dark:text-green-300"
+                  )}>Overdue Tasks</CardTitle>
+                  {data.overdueTasksCount > 0 
+                      ? <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                      : <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  }
+                </CardHeader>
+                <CardContent>
+                  <div className={cn(
+                      "text-4xl font-bold",
+                      data.overdueTasksCount > 0 
+                          ? "text-red-600 dark:text-red-400"
+                          : "text-green-600 dark:text-green-400"
+                  )}>{data.overdueTasksCount}</div>
+                  <p className={cn(
+                      "text-xs",
+                      data.overdueTasksCount > 0
+                          ? "text-red-600/80 dark:text-red-400/70"
+                          : "text-green-600/80 dark:text-green-400/70"
+                  )}>{data.overdueTasksCount > 0 ? "Action required" : "All tasks on track"}</p>
+                </CardContent>
+              </Card>
+            </Link>
           </motion.div>
         </motion.div>
 
@@ -201,7 +209,7 @@ export default function AdminDashboard() {
           animate="visible"
         >
            <motion.div variants={itemVariants} className="flex">
-              <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl h-full flex flex-col w-full">
+              <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl h-full flex flex-col w-full">
                   <CardHeader>
                   <CardTitle className="flex items-center gap-2"><CalendarClock className="h-5 w-5"/>Upcoming Deadlines</CardTitle>
                   </CardHeader>
@@ -231,7 +239,7 @@ export default function AdminDashboard() {
           </motion.div>
 
           <motion.div variants={itemVariants} className="flex">
-              <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl h-full flex flex-col w-full">
+              <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl h-full flex flex-col w-full">
               <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Active Projects</CardTitle>
                   <Button variant="ghost" size="sm" asChild className="rounded-lg">
@@ -267,7 +275,7 @@ export default function AdminDashboard() {
               </Card>
           </motion.div>
           <motion.div variants={itemVariants} className="flex">
-              <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl h-full flex flex-col w-full">
+              <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl h-full flex flex-col w-full">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2"><UserPlus className="h-5 w-5"/>Recent Clients</CardTitle>
                   </CardHeader>

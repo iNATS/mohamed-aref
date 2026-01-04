@@ -109,7 +109,7 @@ const MailView = () => {
     const [isComposeOpen, setIsComposeOpen] = React.useState(false);
    
     return (
-        <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-white/60 dark:bg-white/5 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+        <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-white/60 dark:bg-white/5 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
             <Mail className="mx-auto h-16 w-16 mb-4 text-zinc-400 dark:text-zinc-600"/>
             <h3 className="text-xl font-semibold mb-2">Email Integration Not Configured</h3>
             <p className="text-muted-foreground max-w-sm mx-auto">
@@ -290,7 +290,7 @@ const MeetingsView = () => {
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
             <div className="lg:col-span-1">
-                 <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+                 <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
                     <CardContent className="p-0">
                         <CalendarComponent
                             mode="single"
@@ -319,7 +319,7 @@ const MeetingsView = () => {
                 </Dialog>
             </div>
             <div className="lg:col-span-2">
-                <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl h-full">
+                <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl h-full">
                     <CardHeader>
                         <CardTitle>
                             {date ? `Meetings on ${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}` : 'Upcoming Meetings'}
@@ -396,7 +396,7 @@ export default function CommunicationsPage() {
                     <h1 className="text-2xl font-bold tracking-tight">Communications</h1>
                 </div>
                 <div className="w-full">
-                    <TabsList className="mb-4 bg-white/60 dark:bg-white/5 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl h-auto p-2 w-full max-w-sm">
+                    <TabsList className="mb-4 bg-white/60 dark:bg-white/5 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl h-auto p-2 w-full max-w-sm">
                     {navItems.map(item => (
                         <TabsTrigger key={item.id} value={item.id} className="w-full flex items-center gap-2 rounded-lg data-[state=active]:bg-primary/10 data-[state=active]:text-primary dark:data-[state=active]:text-white">
                             <item.icon className="h-5 w-5" />

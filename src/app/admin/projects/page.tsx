@@ -113,7 +113,7 @@ const ProjectCard = ({ project, onEdit, onDelete, onView, clients }: { project: 
     
     return (
         <div ref={setNodeRef} style={style} {...attributes}>
-            <Card className="bg-white/70 dark:bg-white/10 backdrop-blur-3xl border-zinc-200/50 dark:border-white/20 shadow-lg rounded-xl mb-4 transition-shadow hover:shadow-2xl cursor-pointer" onClick={() => onView(project)}>
+            <Card className="bg-white/70 dark:bg-white/10 backdrop-blur-3xl border-zinc-200/50 dark:border-white/20 dark:shadow-lg rounded-xl mb-4 transition-shadow hover:shadow-xl dark:hover:shadow-2xl cursor-pointer" onClick={() => onView(project)}>
                 <CardHeader className="p-4 pb-2">
                     <div className="flex justify-between items-start">
                          <div {...listeners} onClick={e => e.stopPropagation()} className="flex-shrink-0 pt-1 text-zinc-500 dark:text-white/40 hover:text-foreground dark:hover:text-white transition-colors cursor-grab active:cursor-grabbing">
@@ -684,3 +684,4 @@ const ProgressWithIndicator = ({ indicatorClassName, ...props }: React.Component
   originalProgress.Indicator = Progress.Indicator;
 
     
+

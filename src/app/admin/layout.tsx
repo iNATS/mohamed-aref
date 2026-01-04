@@ -20,8 +20,9 @@ import * as React from 'react';
 import { NotificationBell } from './components/NotificationBell';
 import AdminNav from './components/AdminNav';
 import { createServerClient } from '@/lib/supabase/server';
-import { getNotifications } from '@/lib/db';
+import { getNotifications, markNotificationsAsRead } from '@/lib/db';
 import { cookies } from 'next/headers';
+import { logout } from '@/lib/actions';
 
 export default async function AdminLayout({
   children,
@@ -33,17 +34,24 @@ export default async function AdminLayout({
   const { data: { user } } = await supabase.auth.getUser();
   const notifications = await getNotifications(supabase);
 
+  const handleMarkRead = async () => {
+    'use server'
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
+    await markNotificationsAsRead(supabase);
+  }
+
   return (
     <div className="bg-background min-h-screen">
       <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-fit mx-auto">
-        <div className="flex items-center justify-between p-2 rounded-full shadow-lg backdrop-blur-lg bg-background/70 dark:bg-background/50 border border-foreground/10">
+        <div className="flex items-center justify-between p-2 rounded-full shadow-lg dark:shadow-none backdrop-blur-lg bg-background/70 dark:bg-background/50 border border-foreground/10">
           
           <AdminNav />
           
           <div className="flex items-center gap-2">
             <ThemeToggle />
             
-            <NotificationBell initialNotifications={notifications as any[]} />
+            <NotificationBell initialNotifications={notifications as any[]} onOpen={handleMarkRead} />
            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -71,12 +79,14 @@ export default async function AdminLayout({
                   <Link href="/admin/settings"><Shield className="mr-2 h-4 w-4" /><span>Security</span></Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                    <button type="submit" className="w-full text-left flex items-center">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Log out</span>
+                <form action={logout}>
+                    <button type="submit" className="w-full">
+                         <DropdownMenuItem>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span>Log out</span>
+                        </DropdownMenuItem>
                     </button>
-                </DropdownMenuItem>
+                </form>
               </DropdownMenuContent>
             </DropdownMenu>
 

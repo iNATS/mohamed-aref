@@ -2,10 +2,11 @@
 
 import * as React from 'react';
 import { motion } from 'framer-motion';
-import { DollarSign, Briefcase, Users, Palette, Activity, TrendingUp } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, RadialBar, RadialBarChart, Legend } from 'recharts';
+import { DollarSign, Briefcase, Users, Palette, Activity, TrendingUp, CheckCircle, Clock, GanttChartSquare } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, Pie, PieChart, Cell, Line, LineChart, CartesianGrid } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTheme } from 'next-themes';
 
 interface ReportsData {
     totalBilled: number;
@@ -13,13 +14,23 @@ interface ReportsData {
     totalClientsCount: number;
     activeProjectsCount: number;
     incomeData: { name: string; income: number }[];
-    workloadData: { name: string; value: number; fill: string }[];
+    workloadData: { name: string; value: number }[];
     clientLeaderboard: any[];
+    projectStatusData: { name: string; value: number }[];
+    taskPriorityData: { name: string; value: number }[];
 }
+
+const COLORS = {
+    light: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#10b981'],
+    dark: ['#60a5fa', '#a78bfa', '#f472b6', '#fb923c', '#34d399']
+};
 
 export default function ReportsPage() {
     const [data, setData] = React.useState<ReportsData | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const { theme } = useTheme();
+    const chartColors = theme === 'dark' ? COLORS.dark : COLORS.light;
+
 
     React.useEffect(() => {
         async function fetchData() {
@@ -31,22 +42,27 @@ export default function ReportsPage() {
                 totalClientsCount: 8,
                 activeProjectsCount: 3,
                 incomeData: [
-                    { name: 'Jan', income: 5000 },
-                    { name: 'Feb', income: 8000 },
-                    { name: 'Mar', income: 12000 },
-                    { name: 'Apr', income: 7000 },
-                    { name: 'May', income: 15000 },
-                    { name: 'Jun', income: 10000 },
+                    { name: 'Jan', income: 5000 }, { name: 'Feb', income: 8000 },
+                    { name: 'Mar', income: 12000 }, { name: 'Apr', income: 7000 },
+                    { name: 'May', income: 15000 }, { name: 'Jun', income: 10000 },
+                    { name: 'Jul', income: 18000 }, { name: 'Aug', income: 16000 },
                 ],
                 workloadData: [
-                    { name: 'Web', value: 7, fill: 'var(--chart-1)' },
-                    { name: 'Mobile', value: 3, fill: 'var(--chart-2)' },
-                    { name: 'Design', value: 2, fill: 'var(--chart-3)' },
+                    { name: 'Web', value: 7 }, { name: 'Mobile', value: 3 },
+                    { name: 'Design', value: 2 }, { name: 'Backend', value: 4 },
                 ],
                 clientLeaderboard: [
                     { id: 1, client_name: 'Innovate Inc.', client_company: 'Innovate Inc.', total_value: 45000 },
                     { id: 2, client_name: 'Creative Solutions', client_company: 'Creative Solutions LLC', total_value: 20000 },
-                ]
+                ],
+                projectStatusData: [
+                    { name: 'Completed', value: 12 }, { name: 'In Progress', value: 3 },
+                    { name: 'Planning', value: 2 },
+                ],
+                taskPriorityData: [
+                    { name: 'High', value: 5 }, { name: 'Medium', value: 12 },
+                    { name: 'Low', value: 8 },
+                ],
             };
             setData(reportsData);
             setLoading(false);
@@ -56,19 +72,12 @@ export default function ReportsPage() {
     
     const containerVariants = {
         hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-        },
+        visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
     };
 
     const itemVariants = {
         hidden: { y: 20, opacity: 0 },
-        visible: {
-            y: 0,
-            opacity: 1,
-            transition: { type: 'spring', stiffness: 100 },
-        },
+        visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } },
     };
     
     if (loading || !data) {
@@ -78,19 +87,37 @@ export default function ReportsPage() {
                     <h1 className="text-2xl font-bold tracking-tight">Analytics & Insights</h1>
                 </div>
                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                    <Skeleton className="h-28 rounded-2xl" />
-                    <Skeleton className="h-28 rounded-2xl" />
-                    <Skeleton className="h-28 rounded-2xl" />
-                    <Skeleton className="h-28 rounded-2xl" />
+                    <Skeleton className="h-28 rounded-2xl" /> <Skeleton className="h-28 rounded-2xl" />
+                    <Skeleton className="h-28 rounded-2xl" /> <Skeleton className="h-28 rounded-2xl" />
                 </div>
-                <div className="grid gap-6 lg:grid-cols-3">
-                    <Skeleton className="lg:col-span-2 h-80 rounded-2xl" />
+                <div className="grid gap-6 lg:grid-cols-2">
+                    <Skeleton className="h-80 rounded-2xl" /> <Skeleton className="h-80 rounded-2xl" />
+                </div>
+                <div className="grid gap-6 lg:grid-cols-3 mt-6">
+                    <Skeleton className="h-80 rounded-2xl" /> <Skeleton className="h-80 rounded-2xl" />
                     <Skeleton className="h-80 rounded-2xl" />
                 </div>
-                <Skeleton className="h-64 rounded-2xl mt-6" />
             </>
         )
     }
+    
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="rounded-lg border bg-background/80 backdrop-blur-sm p-2 shadow-sm">
+                    <div className="grid grid-cols-2 gap-2">
+                        <div className="flex flex-col space-y-1">
+                            <span className="text-[0.7rem] uppercase text-muted-foreground">{label}</span>
+                            <span className="font-bold text-foreground">
+                                {payload[0].value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        return null;
+    };
 
     return (
         <>
@@ -98,15 +125,15 @@ export default function ReportsPage() {
                 <h1 className="text-2xl font-bold tracking-tight">Analytics & Insights</h1>
             </div>
             
-            <div className="flex-1 overflow-y-auto pb-4">
-                <motion.div 
-                    className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                >
+            <motion.div 
+                className="flex-1 overflow-y-auto pb-4"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
                     <motion.div variants={itemVariants}>
-                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-white/20 hover:-translate-y-1">
+                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-white/20 hover:-translate-y-1">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70">Total Revenue</CardTitle>
                                 <DollarSign className="h-5 w-5 text-green-500 dark:text-green-400" />
@@ -118,10 +145,10 @@ export default function ReportsPage() {
                         </Card>
                     </motion.div>
                     <motion.div variants={itemVariants}>
-                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-white/20 hover:-translate-y-1">
+                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-white/20 hover:-translate-y-1">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70">Completed Projects</CardTitle>
-                                <Briefcase className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+                                <CheckCircle className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                             </CardHeader>
                             <CardContent>
                                 <div className="text-3xl font-bold">{data.completedProjectsCount}</div>
@@ -130,7 +157,7 @@ export default function ReportsPage() {
                         </Card>
                     </motion.div>
                     <motion.div variants={itemVariants}>
-                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-white/20 hover:-translate-y-1">
+                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-white/20 hover:-translate-y-1">
                             <CardHeader className="flex flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70">Total Clients</CardTitle>
                                 <Users className="h-5 w-5 text-purple-500 dark:text-purple-400" />
@@ -142,7 +169,7 @@ export default function ReportsPage() {
                         </Card>
                     </motion.div>
                     <motion.div variants={itemVariants}>
-                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-white/20 hover:-translate-y-1">
+                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl transition-all duration-300 hover:border-zinc-300 dark:hover:border-white/20 hover:-translate-y-1">
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-sm font-medium text-zinc-600 dark:text-white/70 flex items-center justify-between">
                                     Active Projects
@@ -155,83 +182,91 @@ export default function ReportsPage() {
                             </CardContent>
                         </Card>
                     </motion.div>
-                </motion.div>
+                </div>
 
-                <motion.div 
-                    className="grid gap-6 lg:grid-cols-3"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                >
-                    <motion.div variants={itemVariants} className="lg:col-span-2">
-                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl h-full">
+                <div className="grid gap-6 lg:grid-cols-1 mb-6">
+                     <motion.div variants={itemVariants}>
+                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl h-full">
                             <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2"><TrendingUp className="h-5 w-5"/>6-Month Income</CardTitle>
+                                <CardTitle className="text-lg flex items-center gap-2"><TrendingUp className="h-5 w-5"/>Revenue Over Time</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <ResponsiveContainer width="100%" height={250}>
-                                    <BarChart data={data.incomeData}>
-                                        <defs>
-                                            <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4}/>
-                                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                                            </linearGradient>
-                                        </defs>
+                                    <LineChart data={data.incomeData}>
+                                        <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
                                         <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
                                         <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${Number(value) / 1000}k`} />
-                                        <Tooltip
-                                            cursor={{ fill: 'hsla(var(--primary-rgb), 0.1)', radius: 4 }}
-                                            contentStyle={{
-                                                background: 'hsla(var(--background), 0.8)',
-                                                border: '1px solid hsl(var(--border))',
-                                                borderRadius: '0.75rem',
-                                                color: 'hsl(var(--foreground))',
-                                                backdropFilter: 'blur(4px)',
-                                            }}
-                                            formatter={(value) => [value.toLocaleString('en-US', { style: 'currency', currency: 'USD' }), "Income"]}
-                                        />
-                                        <Bar dataKey="income" fill="url(#incomeGradient)" radius={[4, 4, 0, 0]} />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Line type="monotone" dataKey="income" stroke={chartColors[0]} strokeWidth={2} dot={{ r: 4, fill: chartColors[0] }} activeDot={{ r: 8 }} />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                </div>
+                 <div className="grid gap-6 lg:grid-cols-3 mb-6">
+                    <motion.div variants={itemVariants}>
+                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl h-full">
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2"><Briefcase className="h-5 w-5"/>Project Status</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <PieChart>
+                                        <Pie data={data.projectStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
+                                            {data.projectStatusData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip formatter={(value, name) => [`${value} projects`, name]} />
+                                        <Legend />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </CardContent>
+                        </Card>
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
+                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl h-full">
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center gap-2"><Palette className="h-5 w-5"/>Workload by Category</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <BarChart data={data.workloadData} layout="vertical" margin={{ left: 10 }}>
+                                        <XAxis type="number" hide />
+                                        <YAxis type="category" dataKey="name" tickLine={false} axisLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} width={60} />
+                                        <Tooltip cursor={{ fill: 'hsla(var(--primary-rgb), 0.1)' }} formatter={(value) => [`${value} projects`, 'Count']} />
+                                        <Bar dataKey="value" radius={[0, 4, 4, 0]} >
+                                             {data.workloadData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                                            ))}
+                                        </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
                             </CardContent>
                         </Card>
                     </motion.div>
                     <motion.div variants={itemVariants}>
-                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl h-full">
+                        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl h-full">
                             <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2"><Palette className="h-5 w-5"/>Workload</CardTitle>
+                                <CardTitle className="text-lg flex items-center gap-2"><GanttChartSquare className="h-5 w-5"/>Task Priority</CardTitle>
                             </CardHeader>
                             <CardContent>
-                            <ResponsiveContainer width="100%" height={250}>
-                                    <RadialBarChart 
-                                        innerRadius="30%" 
-                                        outerRadius="100%" 
-                                        data={data.workloadData} 
-                                        startAngle={90} 
-                                        endAngle={-270}
-                                    >
-                                        <RadialBar
-                                            background
-                                            dataKey='value'
-                                            className="[&_.recharts-radial-bar-background-sector]:fill-black/5 dark:[&_.recharts-radial-bar-background-sector]:fill-white/5"
-                                        />
-                                        <Legend iconSize={10} layout="horizontal" verticalAlign="bottom" align="center" wrapperStyle={{color: 'hsl(var(--foreground))', fontSize: '14px', padding: '10px'}} />
-                                        <Tooltip
-                                            contentStyle={{
-                                                background: 'hsla(var(--background), 0.8)',
-                                                border: '1px solid hsl(var(--border))',
-                                                borderRadius: '0.75rem',
-                                                color: 'hsl(var(--foreground))',
-                                                backdropFilter: 'blur(4px)',
-                                            }}
-                                            formatter={(value, name) => [`${value} projects`, name]}
-                                        />
-                                    </RadialBarChart>
+                                <ResponsiveContainer width="100%" height={200}>
+                                     <PieChart>
+                                        <Pie data={data.taskPriorityData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={5} label>
+                                            {data.taskPriorityData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={chartColors[index % chartColors.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip formatter={(value, name) => [`${value} tasks`, name]} />
+                                        <Legend />
+                                    </PieChart>
                                 </ResponsiveContainer>
                             </CardContent>
                         </Card>
                     </motion.div>
-                </motion.div>
+                </div>
 
                 <motion.div
                     className="mt-6"
@@ -239,7 +274,7 @@ export default function ReportsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
                 >
-                    <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+                    <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2"><Users className="h-5 w-5"/>Top Clients by Value</CardTitle>
                         </CardHeader>
@@ -259,7 +294,7 @@ export default function ReportsPage() {
                         </CardContent>
                     </Card>
                 </motion.div>
-            </div>
+            </motion.div>
         </>
     );
 }

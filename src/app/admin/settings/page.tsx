@@ -46,7 +46,7 @@ const PortfolioCategoryManager = () => {
     };
 
     return (
-        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><FolderKanban className="h-5 w-5" /> Portfolio Categories</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">Manage the categories for your portfolio projects.</CardDescription>
@@ -78,7 +78,7 @@ const MailSettingsForm = () => {
     const { toast } = useToast();
 
     return (
-        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Settings2 className="h-5 w-5" />Communication</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">Configure your mail and chat settings.</CardDescription>
@@ -156,7 +156,7 @@ const DatabaseSettingsForm = () => {
     };
 
     return (
-        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Database className="h-5 w-5" /> Database Connection</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">Configure your connection to a database project.</CardDescription>
@@ -198,7 +198,7 @@ const SocialLinksForm = () => {
     };
 
     return (
-        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Share2 className="h-5 w-5" /> Social Media Links</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">Manage the URLs for the social media floating action button.</CardDescription>
@@ -289,7 +289,7 @@ export default function SettingsPage() {
           </TabsList>
           
           <TabsContent value="profile">
-            <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+            <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">Update your public profile details.</CardDescription>
@@ -337,7 +337,7 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="security">
-            <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+            <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><KeyRound className="h-5 w-5" />Security</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">Manage your account security settings.</CardDescription>
@@ -375,7 +375,7 @@ export default function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="preferences">
-             <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+             <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Bell className="h-5 w-5" />Notifications</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">Manage how you receive notifications.</CardDescription>
@@ -405,7 +405,7 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-             <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl mt-8">
+             <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl mt-8">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Languages className="h-5 w-5" />Language</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">Choose your preferred language for the interface.</CardDescription>
@@ -427,7 +427,7 @@ export default function SettingsPage() {
           
           <TabsContent value="integrations">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
+                <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><BarChart className="h-5 w-5" />Marketing & Analytics</CardTitle>
                         <CardDescription className="text-zinc-600 dark:text-white/60">Connect your marketing and analytics tools.</CardDescription>

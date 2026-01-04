@@ -440,7 +440,7 @@ export default function ClientsPage() {
           </AlertDialogContent>
         </AlertDialog>
       <div className="flex-1 overflow-y-auto pb-8">
-        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl flex-1 flex flex-col min-h-0">
+        <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 dark:shadow-xl rounded-2xl flex-1 flex flex-col min-h-0">
             <CardHeader>
                 <CardTitle>Your Clients</CardTitle>
                 <CardDescription className="text-zinc-600 dark:text-white/60">
