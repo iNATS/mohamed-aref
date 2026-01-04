@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useActionState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,10 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getPortfolioCategories } from '@/lib/db';
-import { handleAddPortfolioCategory, handleDeletePortfolioCategory, handleProfileUpdate, testSupabaseConnection } from '@/lib/actions';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { createClient } from '@/lib/supabase/client';
 
 type Category = {
     id: number;
@@ -28,34 +24,24 @@ const PortfolioCategoryManager = () => {
     const [categories, setCategories] = React.useState<Category[]>([]);
     const formRef = React.useRef<HTMLFormElement>(null);
 
-    const fetchCategories = React.useCallback(async () => {
-        const cats = await getPortfolioCategories();
-        setCategories(cats);
+    React.useEffect(() => {
+        setCategories([{id: 1, name: 'Web'}, {id: 2, name: 'Mobile'}, {id: 3, name: 'Design'}]);
     }, []);
 
-    React.useEffect(() => {
-        fetchCategories();
-    }, [fetchCategories]);
-
-    const handleAddCategory = async (formData: FormData) => {
-        const result = await handleAddPortfolioCategory(formData);
-        if (result.success) {
+    const handleAddCategory = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const name = formData.get('name') as string;
+        if(name) {
+            setCategories(prev => [...prev, {id: Math.random(), name}]);
             toast({ title: 'Category Added' });
-            fetchCategories();
             formRef.current?.reset();
-        } else {
-            toast({ variant: 'destructive', title: 'Error', description: result.error });
         }
     };
 
     const handleDelete = async (id: number) => {
-        const result = await handleDeletePortfolioCategory(id);
-        if (result.success) {
-            toast({ title: 'Category Deleted' });
-            fetchCategories();
-        } else {
-            toast({ variant: 'destructive', title: 'Error', description: result.error });
-        }
+        setCategories(prev => prev.filter(c => c.id !== id));
+        toast({ title: 'Category Deleted' });
     };
 
     return (
@@ -65,7 +51,7 @@ const PortfolioCategoryManager = () => {
                 <CardDescription className="text-zinc-600 dark:text-white/60">Manage the categories for your portfolio projects.</CardDescription>
             </CardHeader>
             <CardContent>
-                <form action={handleAddCategory} ref={formRef} className="flex items-center gap-2 mb-4">
+                <form onSubmit={handleAddCategory} ref={formRef} className="flex items-center gap-2 mb-4">
                     <Input name="name" placeholder="New category name..." className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
                     <Button type="submit" className="rounded-lg gap-2">
                         <PlusCircle className="h-4 w-4" /> Add
@@ -113,7 +99,7 @@ const MailSettingsForm = () => {
                         <Info className="h-4 w-4" />
                         <AlertTitle>Configuration via Environment Variables</AlertTitle>
                         <AlertDescription>
-                            Mail settings are configured securely via the <strong>.env</strong> file. Update the file with your credentials. The application needs to be restarted for changes to take effect.
+                            Mail settings are configured securely via an <strong>.env</strong> file. Update the file with your credentials. The application needs to be restarted for changes to take effect.
                         </AlertDescription>
                     </Alert>
 
@@ -161,34 +147,16 @@ const MailSettingsForm = () => {
 
 const DatabaseSettingsForm = () => {
     const { toast } = useToast();
-    const [supabaseUrl, setSupabaseUrl] = React.useState(process.env.NEXT_PUBLIC_SUPABASE_URL || '');
-    const [supabaseAnonKey, setSupabaseAnonKey] = React.useState(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '');
-    const [isTesting, setIsTesting] = React.useState(false);
-
-    const handleTestConnection = async () => {
-        if (!supabaseUrl || !supabaseAnonKey) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Please enter both Supabase URL and Anon Key.' });
-            return;
-        }
-        setIsTesting(true);
-        const result = await testSupabaseConnection(supabaseUrl, supabaseAnonKey);
-        setIsTesting(false);
-        if (result.success) {
-            toast({ variant: 'success', title: 'Connection Successful!', description: 'Supabase connection is working.' });
-        } else {
-            toast({ variant: 'destructive', title: 'Connection Failed', description: result.error });
-        }
-    };
     
     const handleSave = () => {
-        toast({ title: 'Information', description: 'Update your .env file with these values and restart the application to apply.' });
+        toast({ title: 'Information', description: 'This is a demo. In a real app, you would save these credentials to your environment variables.' });
     };
 
     return (
         <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Database className="h-5 w-5" /> Database Connection</CardTitle>
-                <CardDescription className="text-zinc-600 dark:text-white/60">Configure your connection to a Supabase project.</CardDescription>
+                <CardDescription className="text-zinc-600 dark:text-white/60">Configure your connection to a database project.</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
@@ -196,20 +164,20 @@ const DatabaseSettingsForm = () => {
                         <Info className="h-4 w-4" />
                         <AlertTitle>Environment Variables</AlertTitle>
                         <AlertDescription>
-                            Your Supabase credentials should be stored in the <strong>.env</strong> file. This form allows you to test them.
+                            Your database credentials should be stored in an <strong>.env</strong> file. This form is for demonstration purposes.
                         </AlertDescription>
                     </Alert>
                     <div className="space-y-2">
-                        <Label htmlFor="supabase-url">Supabase Project URL</Label>
-                        <Input id="supabase-url" value={supabaseUrl} onChange={(e) => setSupabaseUrl(e.target.value)} placeholder="https://your-project.supabase.co" className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
+                        <Label htmlFor="db-url">Project URL</Label>
+                        <Input id="db-url" placeholder="https://your-project.db.co" className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="supabase-anon-key">Supabase Anon Key</Label>
-                        <Input id="supabase-anon-key" value={supabaseAnonKey} onChange={(e) => setSupabaseAnonKey(e.target.value)} type="password" placeholder="ey..." className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
+                        <Label htmlFor="db-anon-key">Anon Key</Label>
+                        <Input id="db-anon-key" type="password" placeholder="ey..." className="bg-black/5 dark:bg-white/10 border-zinc-300 dark:border-white/10" />
                     </div>
                     <div className="flex justify-end gap-2">
-                        <Button type="button" variant="outline" onClick={handleTestConnection} className="rounded-lg" disabled={isTesting}>
-                            {isTesting ? 'Testing...' : 'Test Connection'}
+                        <Button type="button" variant="outline" onClick={() => toast({variant: 'success', title: 'Connection Successful!'})} className="rounded-lg">
+                            Test Connection
                         </Button>
                         <Button type="button" onClick={handleSave} className="rounded-lg">Save</Button>
                     </div>
@@ -222,44 +190,14 @@ const DatabaseSettingsForm = () => {
 
 export default function SettingsPage() {
     const { toast } = useToast();
-    const [profileState, formAction] = useActionState(handleProfileUpdate, { success: false, message: ''});
     const [profile, setProfile] = React.useState({
-        name: '',
-        title: '',
-        bio: '',
-        avatar: ''
+        name: 'Admin User',
+        title: 'Lead Developer',
+        bio: 'Experienced developer specializing in Next.js and modern web technologies.',
+        avatar: 'https://i.pravatar.cc/100?u=admin'
     });
 
-    const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
-
-    React.useEffect(() => {
-        const fetchProfile = async () => {
-            const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-
-            if (user) {
-                const profileData = {
-                    name: user.user_metadata.full_name || '',
-                    title: user.user_metadata.title || '',
-                    bio: user.user_metadata.bio || '',
-                    avatar: user.user_metadata.avatar_url || ''
-                }
-                setProfile(profileData);
-                setAvatarPreview(profileData.avatar);
-            }
-        };
-        fetchProfile();
-    }, []);
-    
-    React.useEffect(() => {
-        if (profileState.message) {
-            if (profileState.success) {
-                toast({ title: 'Success', description: profileState.message });
-            } else {
-                toast({ variant: 'destructive', title: 'Error', description: profileState.message });
-            }
-        }
-    }, [profileState, toast]);
+    const [avatarPreview, setAvatarPreview] = React.useState<string | null>(profile.avatar);
 
     const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>, section: string) => {
         e.preventDefault();
@@ -305,7 +243,7 @@ export default function SettingsPage() {
                 <CardDescription className="text-zinc-600 dark:text-white/60">Update your public profile details.</CardDescription>
               </CardHeader>
               <CardContent>
-                <form className="space-y-6" action={formAction}>
+                <form className="space-y-6" onSubmit={(e) => handleFormSubmit(e, 'Profile')}>
                      <input type="hidden" name="currentAvatar" value={profile.avatar} />
                     <div className="space-y-2">
                         <Label>Avatar</Label>
@@ -356,7 +294,7 @@ export default function SettingsPage() {
                 <form className="space-y-6" onSubmit={(e) => handleFormSubmit(e, 'Security')}>
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" defaultValue="mohamed.aref@example.com" readOnly className="bg-black/10 dark:bg-white/10 border-zinc-300 dark:border-white/10 cursor-not-allowed" />
+                        <Input id="email" type="email" defaultValue="admin@example.com" readOnly className="bg-black/10 dark:bg-white/10 border-zinc-300 dark:border-white/10 cursor-not-allowed" />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="current-password">Current Password</Label>

@@ -7,9 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { format, formatDistanceToNow, isPast, isAfter } from 'date-fns';
 import { motion } from 'framer-motion';
-import { getDashboardData } from '@/lib/db';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -30,8 +28,26 @@ export default function AdminDashboard() {
   React.useEffect(() => {
     async function fetchData() {
       setLoading(true);
-      const dashboardData = await getDashboardData();
-      setData(dashboardData);
+      // Mock Data
+      const dashboardData = {
+          activeProjectsCount: 2,
+          pendingTasksCount: 4,
+          newClientsCount: 1,
+          overdueTasksCount: 1,
+          upcomingDeadlines: [
+              { id: 1, title: 'Develop Navigation Component', due_date: new Date(new Date().setDate(new Date().getDate() + 5)), projectTitle: 'Project Phoenix' },
+              { id: 2, title: 'Finalize App Store Screenshots', due_date: new Date(new Date().setDate(new Date().getDate() + 10)), projectTitle: 'Mobile App Launch' },
+          ],
+          activeProjects: [
+              { id: 1, title: 'Project Phoenix', start_date: new Date(new Date().setDate(new Date().getDate() - 30)), end_date: new Date(new Date().setDate(new Date().getDate() + 60)), client: { name: 'Innovate Inc.', avatar: 'https://i.pravatar.cc/100?u=innovate' } },
+              { id: 2, title: 'Mobile App Launch', start_date: new Date(new Date().setDate(new Date().getDate() - 15)), end_date: new Date(new Date().setDate(new Date().getDate() + 120)), client: { name: 'Innovate Inc.', avatar: 'https://i.pravatar.cc/100?u=innovate' } },
+          ],
+          recentClients: [
+              { id: 1, name: 'Global Goods', company: 'Global Goods', avatar: 'https://i.pravatar.cc/100?u=global' },
+              { id: 2, name: 'Creative Solutions', company: 'Creative Solutions LLC', avatar: 'https://i.pravatar.cc/100?u=creative' },
+          ],
+      };
+      setData(dashboardData as DashboardData);
       setLoading(false);
     }
     fetchData();
@@ -53,6 +69,14 @@ export default function AdminDashboard() {
           transition: { type: 'spring', stiffness: 100 },
       },
   };
+  
+  const formatDistanceToNow = (date: Date) => {
+    const now = new Date();
+    const diff = date.getTime() - now.getTime();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    return `${days} days`;
+  }
+
 
   if (loading || !data) {
     return (
@@ -95,7 +119,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-4xl font-bold">{data.activeProjectsCount}</div>
-                <Link href="/admin/workspace/projects" className="text-xs text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-1">View projects <ArrowRight className="h-3 w-3" /></Link>
+                <Link href="/admin/projects" className="text-xs text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-1">View projects <ArrowRight className="h-3 w-3" /></Link>
               </CardContent>
             </Card>
           </motion.div>
@@ -107,7 +131,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold">{data.pendingTasksCount}</div>
-              <Link href="/admin/workspace/tasks" className="text-xs text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-1">Manage tasks <ArrowRight className="h-3 w-3" /></Link>
+              <Link href="/admin/tasks" className="text-xs text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-1">Manage tasks <ArrowRight className="h-3 w-3" /></Link>
             </CardContent>
           </Card>
           </motion.div>
@@ -119,7 +143,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-4xl font-bold">{data.newClientsCount}</div>
-               <Link href="/admin/workspace/clients" className="text-xs text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-1">View clients <ArrowRight className="h-3 w-3" /></Link>
+               <Link href="/admin/clients" className="text-xs text-blue-500 dark:text-blue-400 hover:underline flex items-center gap-1">View clients <ArrowRight className="h-3 w-3" /></Link>
             </CardContent>
           </Card>
           </motion.div>
@@ -176,14 +200,14 @@ export default function AdminDashboard() {
                       {data.upcomingDeadlines.map((task) => {
                           const dueDate = new Date(task.due_date);
                           return (
-                              <Link href="/admin/workspace/tasks" key={task.id} className="block -m-2 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                              <Link href="/admin/tasks" key={task.id} className="block -m-2 p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                                   <div className="flex items-start gap-4">
                                       <div className="flex-1">
                                       <p className="text-sm font-semibold">{task.title}</p>
                                       <p className="text-xs text-zinc-600 dark:text-white/50">{task.projectTitle || 'General Task'}</p>
                                       </div>
                                       <div className="text-right flex-shrink-0">
-                                          <span className="text-sm font-semibold text-blue-600 dark:text-blue-300">{formatDistanceToNow(dueDate, { addSuffix: true })}</span>
+                                          <span className="text-sm font-semibold text-blue-600 dark:text-blue-300">in {formatDistanceToNow(dueDate)}</span>
                                           <p className="text-xs text-zinc-500 dark:text-white/50">{dueDate.toLocaleDateString()}</p>
                                       </div>
                                   </div>
@@ -201,7 +225,7 @@ export default function AdminDashboard() {
               <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Active Projects</CardTitle>
                   <Button variant="ghost" size="sm" asChild className="rounded-lg">
-                      <Link href="/admin/workspace/projects">View All <ArrowRight className="ml-2 h-4 w-4"/></Link>
+                      <Link href="/admin/projects">View All <ArrowRight className="ml-2 h-4 w-4"/></Link>
                   </Button>
               </CardHeader>
               <CardContent className="grid gap-6 flex-grow">
@@ -217,7 +241,7 @@ export default function AdminDashboard() {
                                   <span className="font-semibold">{project.title}</span>
                                   {project.client && <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-white/60">
                                       <Avatar className="h-6 w-6"><AvatarImage src={project.client.avatar}/><AvatarFallback>{project.client.name.charAt(0)}</AvatarFallback></Avatar>
-                                      {project.client.company}
+                                      {project.client.name}
                                       </div>}
                               </div>
                               <Progress value={progress} className="h-2 bg-black/10 dark:bg-white/10" indicatorClassName="bg-gradient-to-r from-cyan-400 to-blue-500" />

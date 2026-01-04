@@ -21,8 +21,6 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { formatDistanceToNow } from 'date-fns';
-import { handleMarkNotificationsAsRead } from '@/lib/actions';
 
 type Notification = {
     id: number;
@@ -59,12 +57,25 @@ export function NotificationBell({ initialNotifications }: { initialNotification
 
   const onOpenChange = async (isOpen: boolean) => {
     if (isOpen && unreadCount > 0) {
-      const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
-      await handleMarkNotificationsAsRead(unreadIds);
       // Optimistically update UI
       setNotifications(current => current.map(n => ({ ...n, is_read: true })));
     }
   };
+  
+  const formatDistanceToNow = (date: string) => {
+      const d = new Date(date);
+      const now = new Date();
+      const diff = now.getTime() - d.getTime();
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if(days > 0) return `${days}d ago`;
+      if(hours > 0) return `${hours}h ago`;
+      if(minutes > 0) return `${minutes}m ago`;
+      return `${seconds}s ago`;
+  }
 
   return (
     <Sheet onOpenChange={onOpenChange}>
@@ -106,7 +117,7 @@ export function NotificationBell({ initialNotifications }: { initialNotification
                     <Link href={notification.link || '#'} className="flex-grow">
                       <div className="flex justify-between items-center">
                         <p className="font-semibold text-base">{notification.title}</p>
-                        <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</p>
+                        <p className="text-xs text-muted-foreground">{formatDistanceToNow(notification.created_at)}</p>
                       </div>
                       <p className="text-sm text-muted-foreground">{notification.description}</p>
                     </Link>

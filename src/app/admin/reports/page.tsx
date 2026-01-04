@@ -5,9 +5,7 @@ import { motion } from 'framer-motion';
 import { DollarSign, Briefcase, Users, Palette, Activity, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, RadialBar, RadialBarChart, Legend } from 'recharts';
-import { useToast } from '@/hooks/use-toast';
-import { addMonths, format, startOfMonth, subMonths, isSameMonth } from 'date-fns';
-import { getReportsData } from '@/lib/db';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ReportsData {
     totalBilled: number;
@@ -20,13 +18,36 @@ interface ReportsData {
 }
 
 export default function ReportsPage() {
-    const { toast } = useToast();
     const [data, setData] = React.useState<ReportsData | null>(null);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
         async function fetchData() {
-            const reportsData = await getReportsData();
+            setLoading(true);
+            // Mock data
+            const reportsData = {
+                totalBilled: 75000,
+                completedProjectsCount: 12,
+                totalClientsCount: 8,
+                activeProjectsCount: 3,
+                incomeData: [
+                    { name: 'Jan', income: 5000 },
+                    { name: 'Feb', income: 8000 },
+                    { name: 'Mar', income: 12000 },
+                    { name: 'Apr', income: 7000 },
+                    { name: 'May', income: 15000 },
+                    { name: 'Jun', income: 10000 },
+                ],
+                workloadData: [
+                    { name: 'Web', value: 7, fill: 'var(--chart-1)' },
+                    { name: 'Mobile', value: 3, fill: 'var(--chart-2)' },
+                    { name: 'Design', value: 2, fill: 'var(--chart-3)' },
+                ],
+                clientLeaderboard: [
+                    { id: 1, client_name: 'Innovate Inc.', client_company: 'Innovate Inc.', total_value: 45000 },
+                    { id: 2, client_name: 'Creative Solutions', client_company: 'Creative Solutions LLC', total_value: 20000 },
+                ]
+            };
             setData(reportsData);
             setLoading(false);
         }
@@ -51,7 +72,24 @@ export default function ReportsPage() {
     };
     
     if (loading || !data) {
-        return <p>Loading...</p>;
+        return (
+            <>
+                <div className="flex items-center mb-6">
+                    <h1 className="text-2xl font-bold tracking-tight">Analytics & Insights</h1>
+                </div>
+                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                    <Skeleton className="h-28 rounded-2xl" />
+                    <Skeleton className="h-28 rounded-2xl" />
+                    <Skeleton className="h-28 rounded-2xl" />
+                    <Skeleton className="h-28 rounded-2xl" />
+                </div>
+                <div className="grid gap-6 lg:grid-cols-3">
+                    <Skeleton className="lg:col-span-2 h-80 rounded-2xl" />
+                    <Skeleton className="h-80 rounded-2xl" />
+                </div>
+                <Skeleton className="h-64 rounded-2xl mt-6" />
+            </>
+        )
     }
 
     return (
@@ -211,10 +249,10 @@ export default function ReportsPage() {
                                     <div key={client.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
                                         <div className="flex items-center gap-3">
                                             <span className="text-sm font-bold text-zinc-500 dark:text-white/50 w-4">{index + 1}.</span>
-                                            <div className="font-medium">{client.name}</div>
-                                            <div className="text-xs text-zinc-600 dark:text-white/60">{client.company}</div>
+                                            <div className="font-medium">{client.client_name}</div>
+                                            <div className="text-xs text-zinc-600 dark:text-white/60">{client.client_company}</div>
                                         </div>
-                                        <div className="font-mono text-lg text-green-600 dark:text-green-300">{client.totalValue.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 })}</div>
+                                        <div className="font-mono text-lg text-green-600 dark:text-green-300">{client.total_value.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 })}</div>
                                     </div>
                                 ))}
                             </div>

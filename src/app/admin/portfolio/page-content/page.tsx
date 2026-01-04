@@ -16,8 +16,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Upload } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getPageContent, getTestimonials } from '@/lib/db';
-import { handlePageContentSave, handleAddTestimonial, handleTestimonialSave, handleRemoveTestimonial } from '@/lib/actions';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 type Testimonial = {
@@ -28,11 +26,11 @@ type Testimonial = {
   avatar: string;
 };
 
-const defaultAboutContent = { title: '', description: '', skills: [], avatar: '' };
+const defaultAboutContent = { title: 'Your Name', description: 'Your bio here.', skills: [], avatar: '' };
 
 export default function PageContentPage() {
     const { toast } = useToast();
-    const [heroContent, setHeroContent] = React.useState({ title: '', subtitle: '', description: '', background: 'orb' });
+    const [heroContent, setHeroContent] = React.useState({ title: 'Creative Developer & Designer', subtitle: 'MOHAMED AREF', description: 'I build beautiful, functional, and accessible digital experiences.', background: 'orb' });
     const [aboutContent, setAboutContent] = React.useState(defaultAboutContent);
     const [processSteps, setProcessSteps] = React.useState<any[]>([]);
     const [testimonials, setTestimonials] = React.useState<Testimonial[]>([]);
@@ -40,53 +38,46 @@ export default function PageContentPage() {
 
     React.useEffect(() => {
         const fetchData = async () => {
-            const [hero, about, process, testimonialsData] = await Promise.all([
-                getPageContent('hero'),
-                getPageContent('about'),
-                getPageContent('process'),
-                getTestimonials()
+            // Mock data, previously from DB
+            setAboutContent({
+              title: "Mohamed Aref", 
+              description: "I am a passionate developer and designer with a knack for creating things that are both beautiful and useful.", 
+              skills: ["Next.js", "React", "TypeScript", "Node.js", "Supabase", "Tailwind CSS", "Figma", "UI/UX Design"], 
+              avatar: "https://yt3.googleusercontent.com/ytc/AIdro_n8R-S22Q-23v_h_2k2l_v0w_zX_zX_zX_zX=s176-c-k-c0x00ffffff-no-rj"
+            });
+            setAvatarPreview("https://yt3.googleusercontent.com/ytc/AIdro_n8R-S22Q-23v_h_2k2l_v0w_zX_zX_zX_zX=s176-c-k-c0x00ffffff-no-rj");
+            setTestimonials([
+                { id: 1, name: 'Alice Johnson', company: 'TechCorp', feedback: 'Working with Mohamed was a fantastic experience. He delivered a high-quality product on time and was incredibly responsive to feedback.', avatar: 'https://i.pravatar.cc/100?u=alice' },
+                { id: 2, name: 'Bob Williams', company: 'Innovate Inc.', feedback: 'The final result exceeded our expectations. The design is modern, and the application is incredibly fast and intuitive. Highly recommended!', avatar: 'https://i.pravatar.cc/100?u=bob' },
             ]);
-            if (hero) setHeroContent(hero);
-            if (about) {
-                setAboutContent(about);
-                setAvatarPreview(about.avatar);
-            }
-            if (process) setProcessSteps(process);
-            if (testimonialsData) setTestimonials(testimonialsData as Testimonial[]);
         };
         fetchData();
     }, []);
 
     const onGenericSave = async (e: React.FormEvent<HTMLFormElement>, section: string) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const result = await handlePageContentSave(section, formData);
-        if(result.success) {
-            toast({ title: 'Success', description: `${section} content updated!` });
-        } else {
-            toast({ variant: 'destructive', title: 'Error', description: result.error || `Failed to update ${section} content.` });
-        }
+        toast({ title: 'Success', description: `${section} content updated!` });
     }
     
     const onAddTestimonial = async () => {
-        await handleAddTestimonial();
-        const data = await getTestimonials();
-        setTestimonials(data as Testimonial[]);
+        const newTestimonial = { 
+            id: Math.random(),
+            name: 'New Testimonial', 
+            company: 'Company', 
+            feedback: 'Enter feedback here.', 
+            avatar: `https://picsum.photos/seed/${Math.random()}/100/100` 
+        };
+        setTestimonials(prev => [...prev, newTestimonial]);
         toast({ title: 'Success', description: 'New testimonial added.' });
     };
 
     const onRemoveTestimonial = async (id: number) => {
-        await handleRemoveTestimonial(id);
         setTestimonials(testimonials.filter((t) => t.id !== id));
         toast({ title: 'Success', description: 'Testimonial removed.' });
     };
 
     const onTestimonialSave = async (e: React.FormEvent<HTMLFormElement>, id: number) => {
         e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        await handleTestimonialSave(id, formData);
-        const data = await getTestimonials();
-        setTestimonials(data as Testimonial[]);
         toast({ title: 'Success', description: 'Testimonial updated successfully!' });
     };
     

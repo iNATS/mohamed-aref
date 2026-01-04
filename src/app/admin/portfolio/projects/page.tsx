@@ -51,12 +51,11 @@ import { ProjectWizard } from '@/app/admin/portfolio/components/ProjectWizard';
 import { useToast } from '@/hooks/use-toast';
 import { Pagination } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getPortfolioItems, deletePortfolioItem } from '@/lib/db';
-import { handleAddWork, handleEditWork, handleDeleteWork } from '@/lib/actions';
 import type { PortfolioItem } from '@/components/landing/Portfolio';
 
 export default function AdminProjectsPage() {
   const [portfolioItems, setPortfolioItems] = React.useState<PortfolioItem[]>([]);
+  const [categories, setCategories] = React.useState<{id: number, name: string}[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [editingProject, setEditingProject] = React.useState<PortfolioItem | null>(null);
@@ -69,8 +68,15 @@ export default function AdminProjectsPage() {
   React.useEffect(() => {
     const fetchItems = async () => {
       setLoading(true);
-      const items = await getPortfolioItems();
+      // Mock data
+       const items: PortfolioItem[] = [
+        { id: 1, title: 'E-commerce Platform', slug: 'e-commerce-platform', description: 'A robust and scalable online store built with Next.js and Stripe.', fullDescription: 'Full description here.', image: 'https://picsum.photos/seed/ecom/600/400', hint: 'online store', tags: ['Next.js', 'Stripe'], category: 'Web', link: '#', screenshots: []},
+        { id: 2, title: 'Task Management App', slug: 'task-app', description: 'A sleek mobile app for managing tasks.', fullDescription: 'Full description here.', image: 'https://picsum.photos/seed/taskapp/600/400', hint: 'mobile productivity', tags: ['React Native', 'Supabase'], category: 'Mobile', link: '#', screenshots: []},
+        { id: 3, title: 'Branding & UI Kit', slug: 'ui-kit', description: 'A complete brand identity and component library.', fullDescription: 'Full description here.', image: 'https://picsum.photos/seed/design/600/400', hint: 'design system', tags: ['Figma', 'UI/UX'], category: 'Design', link: '#', screenshots: []},
+       ];
+       const cats = [{id: 1, name: 'Web'}, {id: 2, name: 'Mobile'}, {id: 3, name: 'Design'}];
       setPortfolioItems(items);
+      setCategories(cats);
       setLoading(false);
     };
     fetchItems();
@@ -92,42 +98,32 @@ export default function AdminProjectsPage() {
 
 
   const onAddWork = async (values: any) => {
-    const result = await handleAddWork(values);
-    if(result.success) {
-        const items = await getPortfolioItems();
-        setPortfolioItems(items);
-        setIsAddDialogOpen(false);
-        toast({
-            title: "Work Published!",
-            description: "Your new work has been added to the portfolio.",
-        });
-    } else {
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: result.error,
-        });
-    }
+    const newWork = {
+      ...values,
+      id: Math.random(),
+      tags: values.tags.split(',').map((t:string) => t.trim()),
+    };
+    setPortfolioItems(prev => [newWork, ...prev]);
+    setIsAddDialogOpen(false);
+    toast({
+        title: "Work Published!",
+        description: "Your new work has been added to the portfolio.",
+    });
   }
 
   const onEditWork = async (values: any) => {
     if (!editingProject?.id) return;
-    const result = await handleEditWork(editingProject.id, values);
-    if(result.success) {
-        const items = await getPortfolioItems();
-        setPortfolioItems(items);
-        setEditingProject(null);
-        toast({
-            title: "Work Updated!",
-            description: "Your work has been successfully updated.",
-        });
-    } else {
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: result.error,
-        });
-    }
+    const updatedWork = {
+      ...editingProject,
+      ...values,
+      tags: values.tags.split(',').map((t:string) => t.trim()),
+    };
+    setPortfolioItems(prev => prev.map(p => p.id === editingProject.id ? updatedWork : p));
+    setEditingProject(null);
+    toast({
+        title: "Work Updated!",
+        description: "Your work has been successfully updated.",
+    });
   }
 
   const handleEdit = (project: PortfolioItem) => {
@@ -140,20 +136,11 @@ export default function AdminProjectsPage() {
 
   const handleDeleteConfirm = async () => {
     if (projectToDelete?.id) {
-        const result = await handleDeleteWork(projectToDelete.id);
-        if(result.success) {
-            setPortfolioItems(prev => prev.filter(p => p.id !== projectToDelete!.id));
-            toast({
-                title: 'Work Deleted',
-                description: `"${projectToDelete.title}" has been removed.`,
-            });
-        } else {
-             toast({
-                variant: "destructive",
-                title: "Error",
-                description: result.error,
-            });
-        }
+        setPortfolioItems(prev => prev.filter(p => p.id !== projectToDelete!.id));
+        toast({
+            title: 'Work Deleted',
+            description: `"${projectToDelete.title}" has been removed.`,
+        });
         setProjectToDelete(null);
     }
   };
@@ -193,6 +180,7 @@ export default function AdminProjectsPage() {
               </DialogHeader>
               <ProjectWizard
                 onSubmit={onAddWork}
+                categories={categories}
               />
           </DialogContent>
           </Dialog>
@@ -210,6 +198,7 @@ export default function AdminProjectsPage() {
             <ProjectWizard
               project={getProjectForForm(editingProject)}
               onSubmit={onEditWork}
+              categories={categories}
             />
           </DialogContent>
         </Dialog>
@@ -262,7 +251,7 @@ export default function AdminProjectsPage() {
                     </TableHeader>
                     <TableBody>
                     {loading ? (
-                      Array.from({ length: 5 }).map((_, i) => (
+                      Array.from({ length: 3 }).map((_, i) => (
                         <TableRow key={i}>
                           <TableCell className="hidden sm:table-cell">
                              <Skeleton className="h-16 w-16 rounded-md" />
@@ -357,5 +346,3 @@ export default function AdminProjectsPage() {
     </>
   );
 }
-
-    

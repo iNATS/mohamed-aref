@@ -16,20 +16,29 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import * as React from 'react';
-import { createServerClient } from '@/lib/supabase/server';
-import { logout } from '@/lib/actions';
-import { getNotifications } from '@/lib/db';
 import { NotificationBell } from './components/NotificationBell';
 import AdminNav from './components/AdminNav';
+
+// Mock user data as there is no DB
+const user = {
+    user_metadata: {
+        avatar_url: 'https://i.pravatar.cc/100?u=admin',
+        full_name: 'Admin User'
+    },
+    email: 'admin@example.com'
+}
+
+// Mock notifications as there is no DB
+const notifications = [
+    { id: 1, user_id: '1', type: 'task_overdue', title: 'Task Overdue: Initial Mockups', description: 'The task "Initial Mockups" was due yesterday.', link: '/admin/tasks', is_read: false, created_at: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString() },
+    { id: 2, user_id: '1', type: 'client', title: 'New Client Added', description: 'You\'ve added a new client: Global Goods.', link: '/admin/clients', is_read: true, created_at: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString() },
+];
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const notifications = user ? await getNotifications(user.id) : [];
 
   return (
     <div className="bg-background min-h-screen">
@@ -69,13 +78,11 @@ export default async function AdminLayout({
                   <Link href="/admin/settings"><Shield className="mr-2 h-4 w-4" /><span>Security</span></Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <form action={logout}>
+                <DropdownMenuItem>
                     <button type="submit" className="w-full text-left flex items-center">
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>
                     </button>
-                  </form>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

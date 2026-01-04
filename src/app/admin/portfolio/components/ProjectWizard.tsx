@@ -1,9 +1,7 @@
 
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, FormProvider } from 'react-hook-form';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   FormControl,
@@ -29,35 +27,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { getPortfolioCategories } from '@/lib/db';
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE = 5000000; // 5MB
-
-const stepSchemas = [
-  z.object({
-    title: z.string().min(2, 'Title must be at least 2 characters.'),
-    slug: z.string().min(2, 'Slug must be at least 2 characters.').regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens.'),
-    description: z.string().min(10, 'Description is too short.'),
-    fullDescription: z.string().min(20, 'Full description is too short.'),
-  }),
-  z.object({
-    imageFile: z.any()
-        .refine((file) => file, "Main image is required.")
-        .refine((file) => file?.size <= MAX_IMAGE_SIZE, `Max image size is 5MB.`)
-        .refine((file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),"Only .jpg, .jpeg, .png and .webp formats are supported."),
-    screenshotFiles: z.any()
-        .refine((files) => files ? Array.from(files).every((file: any) => file.size <= MAX_IMAGE_SIZE) : true, `Max image size is 5MB.`)
-        .refine((files) => files ? Array.from(files).every((file: any) => ACCEPTED_IMAGE_TYPES.includes(file.type)) : true, "optional"),
-    link: z.string().url('Please enter a valid URL.').optional().or(z.literal('')),
-    removedScreenshots: z.array(z.string()).optional(),
-  }),
-  z.object({
-    category: z.string().min(1, 'Please select a category.'),
-    tags: z.string().min(1, 'Please add at least one tag.'),
-  }),
-  z.object({})
-];
 
 
 interface ProjectWizardProps {
@@ -70,6 +42,7 @@ interface ProjectWizardProps {
     screenshotFiles?: FileList;
   };
   onSubmit: (values: any) => Promise<void>;
+  categories: {id: number, name: string}[];
 }
 
 
@@ -110,21 +83,13 @@ const slugify = (str: string) =>
         .replace(/[\s_-]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
-export function ProjectWizard({ project, onSubmit }: ProjectWizardProps) {
+export function ProjectWizard({ project, onSubmit, categories }: ProjectWizardProps) {
     const [currentStep, setCurrentStep] = useState(0);
     const [direction, setDirection] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [categories, setCategories] = useState<{id: number; name: string}[]>([]);
     
-    useEffect(() => {
-        const fetchCategories = async () => {
-            const cats = await getPortfolioCategories();
-            setCategories(cats);
-        };
-        fetchCategories();
-    }, []);
-
     const isEditing = !!project?.id;
+    const totalSteps = 4;
     
     const [formData, setFormData] = useState({
         title: project?.title || '',
@@ -139,20 +104,7 @@ export function ProjectWizard({ project, onSubmit }: ProjectWizardProps) {
         removedScreenshots: [] as string[],
     });
 
-    // Use a different schema for editing to make file inputs optional
-    const editStepSchemas = [
-        stepSchemas[0],
-        stepSchemas[1].extend({
-            imageFile: stepSchemas[1].shape.imageFile.optional(),
-        }),
-        stepSchemas[2],
-        stepSchemas[3],
-    ];
-
-    const currentSchemas = isEditing ? editStepSchemas : stepSchemas;
-
     const form = useForm({
-        resolver: zodResolver(currentSchemas[currentStep]),
         defaultValues: formData,
         mode: "onChange",
     });
@@ -165,9 +117,6 @@ export function ProjectWizard({ project, onSubmit }: ProjectWizardProps) {
     }, [title, form]);
     
   const processAndSubmit = async () => {
-    const isFinalStepValid = await form.trigger();
-    if (!isFinalStepValid) return;
-    
     const finalData = { ...formData, ...form.getValues() };
     
     setIsSubmitting(true);
@@ -181,14 +130,11 @@ export function ProjectWizard({ project, onSubmit }: ProjectWizardProps) {
   const screenshotsRef = form.register("screenshotFiles");
 
   const processStep = async () => {
-    const isStepValid = await form.trigger();
-    if (!isStepValid) return;
-    
     const currentValues = form.getValues();
     const newFormData = {...formData, ...currentValues};
     setFormData(newFormData);
 
-    if (currentStep < currentSchemas.length - 1) {
+    if (currentStep < totalSteps - 1) {
         setDirection(1);
         setCurrentStep(step => step + 1);
     } else {
@@ -241,9 +187,9 @@ export function ProjectWizard({ project, onSubmit }: ProjectWizardProps) {
 
     if (!preview) return <div className={cn("bg-black/10 dark:bg-white/10 animate-pulse", className)} />;
     
-    const imageProps = { src: preview, alt: alt || "preview" };
+    const imageProps = fill ? { src: preview, alt: alt || "preview", fill: true, className: cn("object-cover", className)} : { src: preview, alt: alt || "preview", width: 100, height: 100, className };
 
-    return <Image {...imageProps} fill className={cn("object-cover", className)} />;
+    return <Image {...imageProps} />;
   }
 
   const handleRemoveScreenshot = (screenshotUrl: string) => {
@@ -255,7 +201,7 @@ export function ProjectWizard({ project, onSubmit }: ProjectWizardProps) {
   return (
     <FormProvider {...form}>
       <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-        <StepIndicator currentStep={currentStep} steps={currentSchemas.length} />
+        <StepIndicator currentStep={currentStep} steps={totalSteps} />
 
         <div className="overflow-hidden relative h-[450px] p-1">
             <AnimatePresence initial={false} custom={direction}>
@@ -524,9 +470,9 @@ export function ProjectWizard({ project, onSubmit }: ProjectWizardProps) {
             <Button type="button" onClick={processStep} size="lg" className="rounded-full" disabled={isSubmitting}>
             {isSubmitting ? (
                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting...</>
-            ) : currentStep === currentSchemas.length - 1 ? (
+            ) : currentStep === totalSteps - 1 ? (
                 <>Publish Work <Rocket className="ml-2 h-4 w-4" /></>
-            ) : currentStep === currentSchemas.length - 2 ? (
+            ) : currentStep === totalSteps - 2 ? (
                 <>Review <Send className="ml-2 h-4 w-4" /></>
             ) : (
                 <>Next <ArrowRight className="ml-2 h-4 w-4" /></>

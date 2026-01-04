@@ -55,8 +55,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { Pagination } from '@/components/ui/pagination';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getClients } from '@/lib/db';
-import { handleAddClient, handleUpdateClient, handleDeleteClient } from '@/lib/actions';
 import { Skeleton } from '@/components/ui/skeleton';
 
 
@@ -76,7 +74,8 @@ const ClientForm = ({ client, onSubmit, onCancel }: { client?: Client, onSubmit:
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
-        onSubmit(formData);
+        const values = Object.fromEntries(formData.entries());
+        onSubmit(values);
     }
     
     return (
@@ -218,7 +217,12 @@ export default function ClientsPage() {
 
   const fetchClients = React.useCallback(async () => {
     setLoading(true);
-    const clientsData = await getClients();
+    // Mock data
+    const clientsData = [
+      { id: '1', name: 'Innovate Inc.', email: 'contact@innovate.com', avatar: 'https://i.pravatar.cc/100?u=innovate', status: 'active', company: 'Innovate Inc.', phone: '555-0101', address: '123 Tech Avenue, Silicon Valley', notes: 'Leading tech startup.'},
+      { id: '2', name: 'Creative Solutions', email: 'hello@creative.co', avatar: 'https://i.pravatar.cc/100?u=creative', status: 'active', company: 'Creative Solutions LLC', phone: '555-0102', address: '456 Design Drive, Arts District', notes: 'Design agency.'},
+      { id: '3', name: 'Global Goods', email: 'support@globalgoods.com', avatar: 'https://i.pravatar.cc/100?u=global', status: 'new', company: 'Global Goods', phone: '555-0103', address: '789 Market Street, Commerce City', notes: 'New client.'},
+    ];
     setClients(clientsData as Client[]);
     setLoading(false);
   }, []);
@@ -274,61 +278,44 @@ export default function ClientsPage() {
 
   const handleDeleteConfirm = async () => {
     if (clientToDelete) {
-      const result = await handleDeleteClient(clientToDelete.id);
-      if (result.success) {
-        setClients(clients.filter(c => c.id !== clientToDelete.id));
-        toast({
-          title: 'Client Removed',
-          description: `"${clientToDelete.name}" has been removed.`,
-        });
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: result.error,
-        });
-      }
+      setClients(clients.filter(c => c.id !== clientToDelete.id));
+      toast({
+        title: 'Client Removed',
+        description: `"${clientToDelete.name}" has been removed.`,
+      });
       setClientToDelete(null);
     }
   };
 
-  const onAddClient = async (formData: FormData) => {
-    const name = formData.get('name') as string;
-    const result = await handleAddClient(formData);
-    if(result.success) {
-        await fetchClients();
-        setIsAddDialogOpen(false);
-        toast({
-            title: 'Client Added',
-            description: `"${name}" has been added.`,
-        });
-    } else {
-         toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: result.error,
-        });
-    }
+  const onAddClient = async (values: any) => {
+    const newClient: Client = {
+        id: (Math.random() * 1000).toString(),
+        name: values.name,
+        email: values.email,
+        avatar: `https://i.pravatar.cc/100?u=${encodeURIComponent(values.name)}`,
+        status: values.status,
+        company: values.company,
+        phone: values.phone,
+        address: values.address,
+        notes: values.notes,
+    };
+    setClients(prev => [newClient, ...prev]);
+    setIsAddDialogOpen(false);
+    toast({
+        title: 'Client Added',
+        description: `"${values.name}" has been added.`,
+    });
   }
 
-  const onEditClient = async (formData: FormData) => {
+  const onEditClient = async (values: any) => {
     if(!editingClient) return;
-    const name = formData.get('name') as string;
-    const result = await handleUpdateClient(editingClient.id, formData);
-    if (result.success) {
-        await fetchClients();
-        closeEditDialog();
-        toast({
-            title: 'Client Updated',
-            description: `"${name}" has been updated.`,
-        });
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: result.error,
-        });
-    }
+    const updatedClient = { ...editingClient, ...values };
+    setClients(prev => prev.map(c => c.id === editingClient.id ? updatedClient : c));
+    closeEditDialog();
+    toast({
+        title: 'Client Updated',
+        description: `"${values.name}" has been updated.`,
+    });
   }
   
   return (
@@ -475,7 +462,7 @@ export default function ClientsPage() {
                     </TableHeader>
                     <TableBody>
                      {loading ? (
-                        Array.from({ length: 5 }).map((_, i) => (
+                        Array.from({ length: 3 }).map((_, i) => (
                             <TableRow key={i}>
                                 <TableCell><Skeleton className="h-6 w-32" /></TableCell>
                                 <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-40" /></TableCell>

@@ -46,7 +46,6 @@ import {
     DialogTrigger,
   } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { format, isSameDay } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -56,7 +55,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { MailDisplay } from '@/components/admin/MailDisplay';
-import { getMeetings, getClients, addMeeting, updateMeeting, deleteMeeting } from '@/lib/db';
 import type { Client } from '../clients/page';
 
 
@@ -151,6 +149,8 @@ const ScheduleMeetingForm = ({ onSave, onCancel, meetingToEdit, clients }: { onS
         onSave(newMeeting as any);
     };
 
+    const format = (date: Date, format: string) => date.toLocaleDateString();
+
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -211,12 +211,20 @@ const MeetingsView = () => {
     const { toast } = useToast();
 
     const fetchMeetings = React.useCallback(async () => {
-        const meetingsData = await getMeetings();
-        const clientsData = await getClients();
-        setClients(clientsData as Client[]);
+        // Mock data
+        const clientsData: Client[] = [
+          { id: '1', name: 'Innovate Inc.', email: 'contact@innovate.com', avatar: 'https://i.pravatar.cc/100?u=innovate', status: 'active', company: 'Innovate Inc.', phone: '555-0101', address: '123 Tech Avenue, Silicon Valley', notes: 'Leading tech startup.'},
+          { id: '2', name: 'Creative Solutions', email: 'hello@creative.co', avatar: 'https://i.pravatar.cc/100?u=creative', status: 'active', company: 'Creative Solutions LLC', phone: '555-0102', address: '456 Design Drive, Arts District', notes: 'Design agency.'},
+        ];
+        const meetingsData = [
+            { id: 1, title: 'Project Phoenix Weekly Sync', time: new Date(new Date().setDate(new Date().getDate() + 2)), duration: '30 min', meetLink: 'https://meet.google.com/abc-def-ghi', client_id: 1},
+            { id: 2, title: 'Creative Co. Kick-off', time: new Date(new Date().setDate(new Date().getDate() + 5)), duration: '1 hour', meetLink: 'https://meet.google.com/jkl-mno-pqr', client_id: 2},
+        ];
+
+        setClients(clientsData);
 
         const populatedMeetings = meetingsData.map(m => {
-            const client = (clientsData as Client[]).find(c => String(c.id) === String(m.client_id));
+            const client = clientsData.find(c => String(c.id) === String(m.client_id));
             return {
                 ...m,
                 time: new Date(m.time),
@@ -235,13 +243,15 @@ const MeetingsView = () => {
 
     const handleSaveMeeting = async (meeting: Omit<Meeting, 'id' | 'participants' | 'meetLink'> & {id?: number, meetLink?: string}) => {
         if (meeting.id) {
-            await updateMeeting(meeting.id, meeting);
+             const updatedMeeting = { ...meeting, participants: [], meetLink: meeting.meetLink || '' };
+            setMeetings(prev => prev.map(m => m.id === meeting.id ? updatedMeeting as Meeting : m));
             toast({ title: "Meeting Updated!" });
         } else {
-            await addMeeting(meeting);
+            const newMeeting = { ...meeting, id: Math.random(), participants: [], meetLink: `https://meet.google.com/${Math.random().toString(36).substring(2, 12)}`};
+            setMeetings(prev => [...prev, newMeeting as Meeting]);
             toast({ title: "Meeting Scheduled!" });
         }
-        await fetchMeetings();
+        await fetchMeetings(); // re-fetch to get correct participant info
         setIsScheduling(false);
         setMeetingToEdit(null);
     };
@@ -253,8 +263,7 @@ const MeetingsView = () => {
     };
     
     const handleDeleteMeeting = async (meetingId: number) => {
-        await deleteMeeting(meetingId);
-        await fetchMeetings();
+        setMeetings(prev => prev.filter(m => m.id !== meetingId));
         toast({ title: "Meeting Canceled" });
     };
 
@@ -265,8 +274,10 @@ const MeetingsView = () => {
 
     const filteredMeetings = React.useMemo(() => {
         if (!date) return [];
-        return meetings.filter(meeting => isSameDay(meeting.time, date));
+        return meetings.filter(meeting => new Date(meeting.time).toDateString() === date.toDateString());
     }, [date, meetings]);
+    
+    const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute:'2-digit', hour12: true });
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
@@ -303,7 +314,7 @@ const MeetingsView = () => {
                 <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 shadow-xl rounded-2xl h-full">
                     <CardHeader>
                         <CardTitle>
-                            {date ? `Meetings on ${format(date, 'PPP')}` : 'Upcoming Meetings'}
+                            {date ? `Meetings on ${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}` : 'Upcoming Meetings'}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -311,9 +322,8 @@ const MeetingsView = () => {
                         <div className="space-y-4">
                             {filteredMeetings.length > 0 ? filteredMeetings.map(meeting => (
                                 <div key={meeting.id} className="flex items-center gap-4 p-3 bg-black/5 dark:bg-white/5 rounded-lg border border-zinc-200/50 dark:border-white/10">
-                                    <div className="flex flex-col items-center justify-center w-16">
-                                        <span className="text-2xl font-bold">{format(meeting.time, 'h')}</span>
-                                        <span className="text-xs uppercase text-muted-foreground">{format(meeting.time, 'a')}</span>
+                                    <div className="flex flex-col items-center justify-center w-20">
+                                        <span className="text-lg font-bold">{formatTime(meeting.time)}</span>
                                     </div>
                                     <div className="flex-1">
                                         <h4 className="font-semibold">{meeting.title}</h4>
@@ -331,7 +341,7 @@ const MeetingsView = () => {
                                         <Button asChild className="rounded-lg gap-2">
                                             <Link href={meeting.meetLink || 'https://meet.google.com'} target="_blank" rel="noopener noreferrer">
                                                 <Video className="h-4 w-4" />
-                                                Join Meeting
+                                                Join
                                             </Link>
                                         </Button>
                                          <DropdownMenu>
