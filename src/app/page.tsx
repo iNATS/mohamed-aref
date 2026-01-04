@@ -11,10 +11,12 @@ import { LandingPageMotion } from '@/components/landing/LandingPageMotion';
 import type { PortfolioItem } from '@/components/landing/Portfolio';
 import { getPortfolioItems, getPortfolioCategories, getPageContent, getTestimonials } from '@/lib/db';
 import { createServerClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 
 
 export default async function Home() {
-  const supabase = createServerClient();
+  const cookieStore = cookies();
+  const supabase = createServerClient(cookieStore);
   
   const [
     portfolioItems,

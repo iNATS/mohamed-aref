@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import type { Project } from '@/app/admin/projects/page';
 import type { Client } from '@/app/admin/clients/page';
 import type { Task } from '@/app/admin/tasks/page';
+import { cookies } from 'next/headers';
 
 export async function handleContactForm(prevState: any, formData: FormData) {
     await new Promise(res => setTimeout(res, 1000));
@@ -16,7 +17,8 @@ export async function handleContactForm(prevState: any, formData: FormData) {
 }
 
 export async function login(formData: FormData) {
-  const supabase = createServerClient();
+  const cookieStore = cookies();
+  const supabase = createServerClient(cookieStore);
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
@@ -33,14 +35,16 @@ export async function login(formData: FormData) {
 }
 
 export async function logout() {
-  const supabase = createServerClient();
+  const cookieStore = cookies();
+  const supabase = createServerClient(cookieStore);
   await supabase.auth.signOut();
   return redirect('/login');
 }
 
 
 export async function handleAddProject(values: Omit<Project, 'id'>) {
-    const supabase = createServerClient();
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
 
@@ -58,7 +62,8 @@ export async function handleAddProject(values: Omit<Project, 'id'>) {
 }
 
 export async function handleUpdateProject(id: number, values: Partial<Omit<Project, 'id' | 'user_id'>>) {
-    const supabase = createServerClient();
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
 
@@ -78,7 +83,8 @@ export async function handleUpdateProject(id: number, values: Partial<Omit<Proje
 }
 
 export async function handleDeleteProject(id: number) {
-    const supabase = createServerClient();
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
     
@@ -98,7 +104,8 @@ export async function handleDeleteProject(id: number) {
 }
 
 export async function handleAddClient(values: Omit<Client, 'id' | 'user_id'>) {
-    const supabase = createServerClient();
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
 
@@ -111,7 +118,8 @@ export async function handleAddClient(values: Omit<Client, 'id' | 'user_id'>) {
 }
 
 export async function handleUpdateClient(id: string, values: Partial<Omit<Client, 'id' | 'user_id'>>) {
-    const supabase = createServerClient();
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
 
@@ -125,7 +133,8 @@ export async function handleUpdateClient(id: string, values: Partial<Omit<Client
 }
 
 export async function handleDeleteClient(id: string) {
-    const supabase = createServerClient();
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
     
@@ -139,7 +148,8 @@ export async function handleDeleteClient(id: string) {
 }
 
 export async function handleAddTask(values: Omit<Task, 'id' | 'user_id'>) {
-    const supabase = createServerClient();
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
 
@@ -152,7 +162,8 @@ export async function handleAddTask(values: Omit<Task, 'id' | 'user_id'>) {
 }
 
 export async function handleUpdateTask(id: number, values: Partial<Omit<Task, 'id' | 'user_id'>>) {
-    const supabase = createServerClient();
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
 
@@ -166,7 +177,8 @@ export async function handleUpdateTask(id: number, values: Partial<Omit<Task, 'i
 }
 
 export async function handleDeleteTask(id: number) {
-    const supabase = createServerClient();
+    const cookieStore = cookies();
+    const supabase = createServerClient(cookieStore);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { success: false, error: 'Unauthorized' };
     

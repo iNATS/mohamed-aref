@@ -1,3 +1,4 @@
+
 import {
   Settings,
   Shield,
@@ -20,13 +21,15 @@ import { NotificationBell } from './components/NotificationBell';
 import AdminNav from './components/AdminNav';
 import { createServerClient } from '@/lib/supabase/server';
 import { getNotifications } from '@/lib/db';
+import { cookies } from 'next/headers';
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createServerClient();
+  const cookieStore = cookies();
+  const supabase = createServerClient(cookieStore);
   const { data: { user } } = await supabase.auth.getUser();
   const notifications = await getNotifications(supabase);
 
