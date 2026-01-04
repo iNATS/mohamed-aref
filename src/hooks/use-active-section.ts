@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 export function useActiveSection(sectionIds: string[], options?: IntersectionObserverInit): string {
   const [activeSection, setActiveSection] = useState<string>(sectionIds[0] || '');
@@ -11,6 +11,14 @@ export function useActiveSection(sectionIds: string[], options?: IntersectionObs
   useEffect(() => {
     activeSectionRef.current = activeSection;
   }, [activeSection]);
+
+  const memoizedOptions = useMemo(() => {
+    return {
+      rootMargin: "-50% 0px -50% 0px",
+      threshold: [0, 0.25, 0.5, 0.75, 1],
+      ...options,
+    };
+  }, [options]);
 
   useEffect(() => {
     const observerCallback: IntersectionObserverCallback = (entries) => {
@@ -28,14 +36,8 @@ export function useActiveSection(sectionIds: string[], options?: IntersectionObs
           setActiveSection(bestEntry.target.id);
       }
     };
-
-    const observerOptions = {
-      rootMargin: "-50% 0px -50% 0px",
-      threshold: [0, 0.25, 0.5, 0.75, 1],
-      ...options,
-    };
     
-    observerRef.current = new IntersectionObserver(observerCallback, observerOptions);
+    observerRef.current = new IntersectionObserver(observerCallback, memoizedOptions);
 
     const currentObserver = observerRef.current;
     sectionIds.forEach(id => {
@@ -49,7 +51,7 @@ export function useActiveSection(sectionIds: string[], options?: IntersectionObs
       currentObserver.disconnect();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(sectionIds), options]);
+  }, [JSON.stringify(sectionIds), memoizedOptions]);
 
   return activeSection;
 }
