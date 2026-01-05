@@ -1,54 +1,10 @@
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { SocialFab } from '@/components/SocialFab';
-import { Hero } from '@/components/landing/Hero';
-import { Portfolio } from '@/components/landing/Portfolio';
-import { About } from '@/components/landing/About';
-import { Process } from '@/components/landing/Process';
-import { Testimonials } from '@/components/landing/Testimonials';
-import { Contact } from '@/components/landing/Contact';
-import { LandingPageMotion } from '@/components/landing/LandingPageMotion';
-import type { PortfolioItem } from '@/components/landing/Portfolio';
-import { getPortfolioItems, getPortfolioCategories, getPageContent, getTestimonials } from '@/lib/db';
-import { createServerClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 
-
-export default async function Home() {
-  const cookieStore = cookies();
-  const supabase = createServerClient(cookieStore);
-  
-  const [
-    portfolioItems,
-    portfolioCategories,
-    heroContent,
-    processContent,
-    testimonials,
-    aboutContent,
-  ] = await Promise.all([
-    getPortfolioItems(supabase),
-    getPortfolioCategories(supabase),
-    getPageContent(supabase, 'hero'),
-    getPageContent(supabase, 'process'),
-    getTestimonials(supabase),
-    getPageContent(supabase, 'about'),
-  ]);
-
+export default function Home() {
   return (
-    <div className='flex min-h-screen flex-col bg-background'>
-      <Header />
-      <main className="flex-1 w-full">
-        <Hero content={heroContent} />
-        <LandingPageMotion>
-          <Portfolio initialItems={portfolioItems as PortfolioItem[]} initialCategories={portfolioCategories} />
-          <About content={aboutContent} />
-          <Process content={processContent} />
-          <Testimonials initialTestimonials={testimonials as any[]} />
-          <Contact />
-        </LandingPageMotion>
+    <div className='flex min-h-screen flex-col items-center justify-center bg-background'>
+      <main className="flex-1 w-full flex items-center justify-center">
+        <h1 className="text-4xl font-bold">Hello, World!</h1>
       </main>
-      <SocialFab />
-      <Footer />
     </div>
   );
 }

@@ -127,5 +127,4 @@ export {
   ToastDescription,
   ToastClose,
   ToastAction,
-  toastVariants
 }
